@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Cobrinha</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .painel {
+      display: flex;
+      gap: 20px;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    canvas {
+      background-color: #1e293b;
+      border: 3px solid #38bdf8;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    .instrucoes {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      text-align: center;
+    }
+    #game-over {
+      display: none;
+      position: absolute;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 20px 30px;
+      border-radius: 8px;
+      border: 2px solid #ef4444;
+      text-align: center;
+    }
+    #game-over h2 {
+      margin: 0 0 10px 0;
+      color: #ef4444;
+    }
+    #game-over button {
+      background-color: #38bdf8;
+      color: #0f172a;
+      border: none;
+      padding: 8px 16px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #game-over button:hover {
+      background-color: #0284c7;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="painel">
+    <div>Pontos: <span id="pontos">0</span></div>
+    <div>Recorde: <span id="recorde">0</span></div>
+  </div>
+
+  <canvas id="tela" width="400" height="400"></canvas>
+
+  <div id="game-over">
+    <h2>Fim de Jogo!</h2>
+    <p>Pressione <strong>Espaço</strong> ou o botão abaixo para reiniciar</p>
+    <button onclick="reiniciarJogo()">Jogar Novamente</button>
+  </div>
+
+  <div class="instrucoes">
+    Use as teclas <strong>W, A, S, D</strong> ou as <strong>Setas</strong> para mover a cobrinha.
+  </div>
+
+  <script>
+    const canvas = document.getElementById("tela");
+    const ctx = canvas.getContext("2d");
+    const spanPontos = document.getElementById("pontos");
+    const spanRecorde = document.getElementById("recorde");
+    const divGameOver = document.getElementById("game-over");
+
+    const tamanhoGrade = 20;
+    let cobrinha = [];
+    let direcao = { x: 1, y: 0 };
+    let proximaDirecao = { x: 1, y: 0 };
+    let comida = { x: 0, y: 0 };
+    let pontos = 0;
+    let recorde = localStorage.getItem("recorde_cobrinha") || 0;
+    let intervaloJogo = null;
+    let emJogo = false;
+
+    spanRecorde.innerText = recorde;
+
+    function iniciarJogo() {
+      cobrinha = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+      ];
+      direcao = { x: 1, y: 0 };
+      proximaDirecao = { x: 1, y: 0 };
+      pontos = 0;
+      spanPontos.innerText = pontos;
+      divGameOver.style.display = "none";
+      emJogo = true;
+      gerarComida();
+
+      if (intervaloJogo) clearInterval(intervaloJogo);
+      intervaloJogo = setInterval(loopJogo, 100);
+    }
+
+    function gerarComida() {
+      let novaPosicao;
+      let posicaoValida = false;
+
+      while (!posicaoValida) {
+        novaPosicao = {
+          x: Math.floor(Math.random() * (canvas.width / tamanhoGrade)),
+          y: Math.floor(Math.random() * (canvas.height / tamanhoGrade))
+        };
+        posicaoValida = !cobrinha.some(segmento => segmento.x === novaPosicao.x && segmento.y === novaPosicao.y);
+      }
+
+      comida = novaPosicao;
+    }
+
+    function loopJogo() {
+      direcao = proximaDirecao;
+
+      const cabeca = {
+        x: cobrinha[0].x + direcao.x,
+        y: cobrinha[0].y + direcao.y
+      };
+
+      const maxBlocosX = canvas.width / tamanhoGrade;
+      const maxBlocosY = canvas.height / tamanhoGrade;
+
+      if (cabeca.x < 0 || cabeca.x >= maxBlocosX || cabeca.y < 0 || cabeca.y >= maxBlocosY) {
+        return fimDeJogo();
+      }
+
+      if (cobrinha.some(segmento => segmento.x === cabeca.x && segmento.y === cabeca.y)) {
+        return fimDeJogo();
+      }
+
+      cobrinha.unshift(cabeca);
+
+      if (cabeca.x === comida.x && cabeca.y === comida.y) {
+        pontos += 10;
+        spanPontos.innerText = pontos;
+
+        if (pontos > recorde) {
+          recorde = pontos;
+          spanRecorde.innerText = recorde;
+          localStorage.setItem("recorde_cobrinha", recorde);
+        }
+
+        gerarComida();
+      } else {
+        cobrinha.pop();
+      }
+
+      desenhar();
+    }
+
+    function desenhar() {
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(
+        comida.x * tamanhoGrade + 1,
+        comida.y * tamanhoGrade + 1,
+        tamanhoGrade - 2,
+        tamanhoGrade - 2
+      );
+
+      cobrinha.forEach((segmento, index) => {
+        ctx.fillStyle = index === 0 ? "#4ade80" : "#22c55e";
+        ctx.fillRect(
+          segmento.x * tamanhoGrade + 1,
+          segmento.y * tamanhoGrade + 1,
+          tamanhoGrade - 2,
+          tamanhoGrade - 2
+        );
+      });
+    }
+
+    function fimDeJogo() {
+      emJogo = false;
+      clearInterval(intervaloJogo);
+      divGameOver.style.display = "block";
+    }
+
+    function reiniciarJogo() {
+      iniciarJogo();
+    }
+
+    window.addEventListener("keydown", (e) => {
+      const tecla = e.key.toLowerCase();
+
+      if (!emJogo && (e.code === "Space" || tecla === " ")) {
+        reiniciarJogo();
+        return;
+      }
+
+      if ((tecla === "arrowup" || tecla === "w") && direcao.y === 0) {
+        proximaDirecao = { x: 0, y: -1 };
+      } else if ((tecla === "arrowdown" || tecla === "s") && direcao.y === 0) {
+        proximaDirecao = { x: 0, y: 1 };
+      } else if ((tecla === "arrowleft" || tecla === "a") && direcao.x === 0) {
+        proximaDirecao = { x: -1, y: 0 };
+      } else if ((tecla === "arrowright" || tecla === "d") && direcao.x === 0) {
+        proximaDirecao = { x: 1, y: 0 };
+      }
+    });
+
+    iniciarJogo();
+  </script>
+</body>
+</html>
