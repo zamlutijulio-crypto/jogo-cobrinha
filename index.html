@@ -2,11 +2,19 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo da Cobrinha</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jogo da Cobrinha Mobile</title>
   <style>
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
     body {
       margin: 0;
+      padding: 10px;
       background-color: #0f172a;
       color: #f8fafc;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,53 +23,98 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      overflow: hidden;
     }
+
     .painel {
       display: flex;
-      gap: 20px;
-      font-size: 1.2rem;
-      margin-bottom: 12px;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 360px;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
       font-weight: bold;
     }
+
+    .canvas-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     canvas {
       background-color: #1e293b;
       border: 3px solid #38bdf8;
       border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      max-width: 90vw;
+      max-height: 45vh;
     }
-    .instrucoes {
-      margin-top: 15px;
-      font-size: 0.9rem;
-      color: #94a3b8;
-      text-align: center;
-    }
+
     #game-over {
       display: none;
       position: absolute;
       background: rgba(15, 23, 42, 0.95);
-      padding: 20px 30px;
+      padding: 20px;
       border-radius: 8px;
       border: 2px solid #ef4444;
       text-align: center;
+      width: 80%;
     }
+
     #game-over h2 {
       margin: 0 0 10px 0;
       color: #ef4444;
+      font-size: 1.4rem;
     }
+
     #game-over button {
       background-color: #38bdf8;
       color: #0f172a;
       border: none;
-      padding: 8px 16px;
+      padding: 10px 20px;
       font-size: 1rem;
       font-weight: bold;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       margin-top: 10px;
     }
-    #game-over button:hover {
-      background-color: #0284c7;
+
+    /* Controles Touch na Tela */
+    .controles-mobile {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      grid-template-rows: repeat(3, 60px);
+      gap: 8px;
+      margin-top: 15px;
+      justify-content: center;
     }
+
+    .btn-controle {
+      background-color: #334155;
+      color: #38bdf8;
+      border: 2px solid #475569;
+      border-radius: 12px;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px #0f172a;
+    }
+
+    .btn-controle:active {
+      background-color: #38bdf8;
+      color: #0f172a;
+      transform: translateY(2px);
+      box-shadow: 0 2px #0f172a;
+    }
+
+    .btn-cima { grid-column: 2; grid-row: 1; }
+    .btn-esq { grid-column: 1; grid-row: 2; }
+    .btn-dir { grid-column: 3; grid-row: 2; }
+    .btn-baixo { grid-column: 2; grid-row: 3; }
   </style>
 </head>
 <body>
@@ -71,16 +124,22 @@
     <div>Recorde: <span id="recorde">0</span></div>
   </div>
 
-  <canvas id="tela" width="400" height="400"></canvas>
+  <div class="canvas-container">
+    <canvas id="tela" width="360" height="360"></canvas>
 
-  <div id="game-over">
-    <h2>Fim de Jogo!</h2>
-    <p>Pressione <strong>Espaço</strong> ou o botão abaixo para reiniciar</p>
-    <button onclick="reiniciarJogo()">Jogar Novamente</button>
+    <div id="game-over">
+      <h2>Fim de Jogo!</h2>
+      <p id="msg-final">Toque abaixo para jogar de novo</p>
+      <button onclick="reiniciarJogo()">Jogar Novamente</button>
+    </div>
   </div>
 
-  <div class="instrucoes">
-    Use as teclas <strong>W, A, S, D</strong> ou as <strong>Setas</strong> para mover a cobrinha.
+  <!-- Botões para celular -->
+  <div class="controles-mobile">
+    <button class="btn-controle btn-cima" onclick="mudarDirecao(0, -1)">▲</button>
+    <button class="btn-controle btn-esq" onclick="mudarDirecao(-1, 0)">◀</button>
+    <button class="btn-controle btn-dir" onclick="mudarDirecao(1, 0)">▶</button>
+    <button class="btn-controle btn-baixo" onclick="mudarDirecao(0, 1)">▼</button>
   </div>
 
   <script>
@@ -90,7 +149,7 @@
     const spanRecorde = document.getElementById("recorde");
     const divGameOver = document.getElementById("game-over");
 
-    const tamanhoGrade = 20;
+    const tamanhoGrade = 18; // 20x20 blocos (360 / 18 = 20)
     let cobrinha = [];
     let direcao = { x: 1, y: 0 };
     let proximaDirecao = { x: 1, y: 0 };
@@ -117,40 +176,34 @@
       gerarComida();
 
       if (intervaloJogo) clearInterval(intervaloJogo);
-      intervaloJogo = setInterval(loopJogo, 100);
+      intervaloJogo = setInterval(loopJogo, 110);
     }
 
     function gerarComida() {
       let novaPosicao;
-      let posicaoValida = false;
+      let valida = false;
+      const maxColunas = canvas.width / tamanhoGrade;
+      const maxLinhas = canvas.height / tamanhoGrade;
 
-      while (!posicaoValida) {
+      while (!valida) {
         novaPosicao = {
-          x: Math.floor(Math.random() * (canvas.width / tamanhoGrade)),
-          y: Math.floor(Math.random() * (canvas.height / tamanhoGrade))
+          x: Math.floor(Math.random() * maxColunas),
+          y: Math.floor(Math.random() * maxLinhas)
         };
-        posicaoValida = !cobrinha.some(segmento => segmento.x === novaPosicao.x && segmento.y === novaPosicao.y);
+        valida = !cobrinha.some(seg => seg.x === novaPosicao.x && seg.y === novaPosicao.y);
       }
-
       comida = novaPosicao;
     }
 
     function loopJogo() {
       direcao = proximaDirecao;
+      const cabeca = { x: cobrinha[0].x + direcao.x, y: cobrinha[0].y + direcao.y };
 
-      const cabeca = {
-        x: cobrinha[0].x + direcao.x,
-        y: cobrinha[0].y + direcao.y
-      };
+      const maxX = canvas.width / tamanhoGrade;
+      const maxY = canvas.height / tamanhoGrade;
 
-      const maxBlocosX = canvas.width / tamanhoGrade;
-      const maxBlocosY = canvas.height / tamanhoGrade;
-
-      if (cabeca.x < 0 || cabeca.x >= maxBlocosX || cabeca.y < 0 || cabeca.y >= maxBlocosY) {
-        return fimDeJogo();
-      }
-
-      if (cobrinha.some(segmento => segmento.x === cabeca.x && segmento.y === cabeca.y)) {
+      // Colisões
+      if (cabeca.x < 0 || cabeca.x >= maxX || cabeca.y < 0 || cabeca.y >= maxY || cobrinha.some(s => s.x === cabeca.x && s.y === cabeca.y)) {
         return fimDeJogo();
       }
 
@@ -159,13 +212,11 @@
       if (cabeca.x === comida.x && cabeca.y === comida.y) {
         pontos += 10;
         spanPontos.innerText = pontos;
-
         if (pontos > recorde) {
           recorde = pontos;
           spanRecorde.innerText = recorde;
           localStorage.setItem("recorde_cobrinha", recorde);
         }
-
         gerarComida();
       } else {
         cobrinha.pop();
@@ -178,22 +229,14 @@
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Comida
       ctx.fillStyle = "#ef4444";
-      ctx.fillRect(
-        comida.x * tamanhoGrade + 1,
-        comida.y * tamanhoGrade + 1,
-        tamanhoGrade - 2,
-        tamanhoGrade - 2
-      );
+      ctx.fillRect(comida.x * tamanhoGrade + 1, comida.y * tamanhoGrade + 1, tamanhoGrade - 2, tamanhoGrade - 2);
 
-      cobrinha.forEach((segmento, index) => {
-        ctx.fillStyle = index === 0 ? "#4ade80" : "#22c55e";
-        ctx.fillRect(
-          segmento.x * tamanhoGrade + 1,
-          segmento.y * tamanhoGrade + 1,
-          tamanhoGrade - 2,
-          tamanhoGrade - 2
-        );
+      // Cobrinha
+      cobrinha.forEach((seg, i) => {
+        ctx.fillStyle = i === 0 ? "#4ade80" : "#22c55e";
+        ctx.fillRect(seg.x * tamanhoGrade + 1, seg.y * tamanhoGrade + 1, tamanhoGrade - 2, tamanhoGrade - 2);
       });
     }
 
@@ -207,24 +250,52 @@
       iniciarJogo();
     }
 
+    function mudarDirecao(x, y) {
+      if (!emJogo) return;
+      // Impede voltar na direção oposta imediata
+      if (x !== 0 && direcao.x === 0) proximaDirecao = { x, y: 0 };
+      if (y !== 0 && direcao.y === 0) proximaDirecao = { x: 0, y };
+    }
+
+    // Controles por Teclado (PC)
     window.addEventListener("keydown", (e) => {
       const tecla = e.key.toLowerCase();
-
       if (!emJogo && (e.code === "Space" || tecla === " ")) {
         reiniciarJogo();
         return;
       }
-
-      if ((tecla === "arrowup" || tecla === "w") && direcao.y === 0) {
-        proximaDirecao = { x: 0, y: -1 };
-      } else if ((tecla === "arrowdown" || tecla === "s") && direcao.y === 0) {
-        proximaDirecao = { x: 0, y: 1 };
-      } else if ((tecla === "arrowleft" || tecla === "a") && direcao.x === 0) {
-        proximaDirecao = { x: -1, y: 0 };
-      } else if ((tecla === "arrowright" || tecla === "d") && direcao.x === 0) {
-        proximaDirecao = { x: 1, y: 0 };
-      }
+      if (tecla === "arrowup" || tecla === "w") mudarDirecao(0, -1);
+      else if (tecla === "arrowdown" || tecla === "s") mudarDirecao(0, 1);
+      else if (tecla === "arrowleft" || tecla === "a") mudarDirecao(-1, 0);
+      else if (tecla === "arrowright" || tecla === "d") mudarDirecao(1, 0);
     });
+
+    // Controles por Gesto (Swipe no Celular)
+    let toqueInicialX = null;
+    let toqueInicialY = null;
+
+    canvas.addEventListener("touchstart", (e) => {
+      toqueInicialX = e.touches[0].clientX;
+      toqueInicialY = e.touches[0].clientY;
+    }, { passive: true });
+
+    canvas.addEventListener("touchend", (e) => {
+      if (!toqueInicialX || !toqueInicialY) return;
+
+      const deltaX = e.changedTouches[0].clientX - toqueInicialX;
+      const deltaY = e.changedTouches[0].clientY - toqueInicialY;
+
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 30) mudarDirecao(1, 0); // Direita
+        else if (deltaX < -30) mudarDirecao(-1, 0); // Esquerda
+      } else {
+        if (deltaY > 30) mudarDirecao(0, 1); // Baixo
+        else if (deltaY < -30) mudarDirecao(0, -1); // Cima
+      }
+
+      toqueInicialX = null;
+      toqueInicialY = null;
+    }, { passive: true });
 
     iniciarJogo();
   </script>
