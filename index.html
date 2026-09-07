@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jogo da Cobrinha Mobile</title>
+  <title>Cobrinha: Lucky Block Edition</title>
   <style>
     * {
       box-sizing: border-box;
@@ -31,9 +31,19 @@
       justify-content: space-between;
       width: 100%;
       max-width: 360px;
-      font-size: 1.1rem;
-      margin-bottom: 8px;
+      font-size: 1rem;
+      margin-bottom: 6px;
       font-weight: bold;
+    }
+
+    #aviso-efeito {
+      min-height: 24px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: #facc15;
+      margin-bottom: 6px;
+      text-align: center;
+      transition: all 0.2s;
     }
 
     .canvas-container {
@@ -48,256 +58,55 @@
       border: 3px solid #38bdf8;
       border-radius: 8px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      max-width: 90vw;
-      max-height: 45vh;
+      max-width: 92vw;
+      max-height: 44vh;
     }
 
-    #game-over {
+    .overlay {
       display: none;
       position: absolute;
-      background: rgba(15, 23, 42, 0.95);
-      padding: 20px;
-      border-radius: 8px;
-      border: 2px solid #ef4444;
+      background: rgba(15, 23, 42, 0.96);
+      padding: 18px;
+      border-radius: 10px;
+      border: 2px solid #38bdf8;
       text-align: center;
-      width: 80%;
+      width: 88%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
     }
 
-    #game-over h2 {
+    .overlay h2 {
       margin: 0 0 10px 0;
-      color: #ef4444;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
 
-    #game-over button {
+    .dificuldades {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-dif {
+      background-color: #334155;
+      color: #f8fafc;
+      border: 2px solid #475569;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-dif.ativo {
       background-color: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
+
+    .btn-iniciar {
+      background-color: #22c55e;
       color: #0f172a;
       border: none;
       padding: 10px 20px;
-      font-size: 1rem;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
 
-    /* Controles Touch na Tela */
-    .controles-mobile {
-      display: grid;
-      grid-template-columns: repeat(3, 60px);
-      grid-template-rows: repeat(3, 60px);
-      gap: 8px;
-      margin-top: 15px;
-      justify-content: center;
-    }
 
-    .btn-controle {
-      background-color: #334155;
-      color: #38bdf8;
-      border: 2px solid #475569;
-      border-radius: 12px;
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px #0f172a;
-    }
-
-    .btn-controle:active {
-      background-color: #38bdf8;
-      color: #0f172a;
-      transform: translateY(2px);
-      box-shadow: 0 2px #0f172a;
-    }
-
-    .btn-cima { grid-column: 2; grid-row: 1; }
-    .btn-esq { grid-column: 1; grid-row: 2; }
-    .btn-dir { grid-column: 3; grid-row: 2; }
-    .btn-baixo { grid-column: 2; grid-row: 3; }
-  </style>
-</head>
-<body>
-
-  <div class="painel">
-    <div>Pontos: <span id="pontos">0</span></div>
-    <div>Recorde: <span id="recorde">0</span></div>
-  </div>
-
-  <div class="canvas-container">
-    <canvas id="tela" width="360" height="360"></canvas>
-
-    <div id="game-over">
-      <h2>Fim de Jogo!</h2>
-      <p id="msg-final">Toque abaixo para jogar de novo</p>
-      <button onclick="reiniciarJogo()">Jogar Novamente</button>
-    </div>
-  </div>
-
-  <!-- Botões para celular -->
-  <div class="controles-mobile">
-    <button class="btn-controle btn-cima" onclick="mudarDirecao(0, -1)">▲</button>
-    <button class="btn-controle btn-esq" onclick="mudarDirecao(-1, 0)">◀</button>
-    <button class="btn-controle btn-dir" onclick="mudarDirecao(1, 0)">▶</button>
-    <button class="btn-controle btn-baixo" onclick="mudarDirecao(0, 1)">▼</button>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("tela");
-    const ctx = canvas.getContext("2d");
-    const spanPontos = document.getElementById("pontos");
-    const spanRecorde = document.getElementById("recorde");
-    const divGameOver = document.getElementById("game-over");
-
-    const tamanhoGrade = 18; // 20x20 blocos (360 / 18 = 20)
-    let cobrinha = [];
-    let direcao = { x: 1, y: 0 };
-    let proximaDirecao = { x: 1, y: 0 };
-    let comida = { x: 0, y: 0 };
-    let pontos = 0;
-    let recorde = localStorage.getItem("recorde_cobrinha") || 0;
-    let intervaloJogo = null;
-    let emJogo = false;
-
-    spanRecorde.innerText = recorde;
-
-    function iniciarJogo() {
-      cobrinha = [
-        { x: 10, y: 10 },
-        { x: 9, y: 10 },
-        { x: 8, y: 10 }
-      ];
-      direcao = { x: 1, y: 0 };
-      proximaDirecao = { x: 1, y: 0 };
-      pontos = 0;
-      spanPontos.innerText = pontos;
-      divGameOver.style.display = "none";
-      emJogo = true;
-      gerarComida();
-
-      if (intervaloJogo) clearInterval(intervaloJogo);
-      intervaloJogo = setInterval(loopJogo, 110);
-    }
-
-    function gerarComida() {
-      let novaPosicao;
-      let valida = false;
-      const maxColunas = canvas.width / tamanhoGrade;
-      const maxLinhas = canvas.height / tamanhoGrade;
-
-      while (!valida) {
-        novaPosicao = {
-          x: Math.floor(Math.random() * maxColunas),
-          y: Math.floor(Math.random() * maxLinhas)
-        };
-        valida = !cobrinha.some(seg => seg.x === novaPosicao.x && seg.y === novaPosicao.y);
-      }
-      comida = novaPosicao;
-    }
-
-    function loopJogo() {
-      direcao = proximaDirecao;
-      const cabeca = { x: cobrinha[0].x + direcao.x, y: cobrinha[0].y + direcao.y };
-
-      const maxX = canvas.width / tamanhoGrade;
-      const maxY = canvas.height / tamanhoGrade;
-
-      // Colisões
-      if (cabeca.x < 0 || cabeca.x >= maxX || cabeca.y < 0 || cabeca.y >= maxY || cobrinha.some(s => s.x === cabeca.x && s.y === cabeca.y)) {
-        return fimDeJogo();
-      }
-
-      cobrinha.unshift(cabeca);
-
-      if (cabeca.x === comida.x && cabeca.y === comida.y) {
-        pontos += 10;
-        spanPontos.innerText = pontos;
-        if (pontos > recorde) {
-          recorde = pontos;
-          spanRecorde.innerText = recorde;
-          localStorage.setItem("recorde_cobrinha", recorde);
-        }
-        gerarComida();
-      } else {
-        cobrinha.pop();
-      }
-
-      desenhar();
-    }
-
-    function desenhar() {
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Comida
-      ctx.fillStyle = "#ef4444";
-      ctx.fillRect(comida.x * tamanhoGrade + 1, comida.y * tamanhoGrade + 1, tamanhoGrade - 2, tamanhoGrade - 2);
-
-      // Cobrinha
-      cobrinha.forEach((seg, i) => {
-        ctx.fillStyle = i === 0 ? "#4ade80" : "#22c55e";
-        ctx.fillRect(seg.x * tamanhoGrade + 1, seg.y * tamanhoGrade + 1, tamanhoGrade - 2, tamanhoGrade - 2);
-      });
-    }
-
-    function fimDeJogo() {
-      emJogo = false;
-      clearInterval(intervaloJogo);
-      divGameOver.style.display = "block";
-    }
-
-    function reiniciarJogo() {
-      iniciarJogo();
-    }
-
-    function mudarDirecao(x, y) {
-      if (!emJogo) return;
-      // Impede voltar na direção oposta imediata
-      if (x !== 0 && direcao.x === 0) proximaDirecao = { x, y: 0 };
-      if (y !== 0 && direcao.y === 0) proximaDirecao = { x: 0, y };
-    }
-
-    // Controles por Teclado (PC)
-    window.addEventListener("keydown", (e) => {
-      const tecla = e.key.toLowerCase();
-      if (!emJogo && (e.code === "Space" || tecla === " ")) {
-        reiniciarJogo();
-        return;
-      }
-      if (tecla === "arrowup" || tecla === "w") mudarDirecao(0, -1);
-      else if (tecla === "arrowdown" || tecla === "s") mudarDirecao(0, 1);
-      else if (tecla === "arrowleft" || tecla === "a") mudarDirecao(-1, 0);
-      else if (tecla === "arrowright" || tecla === "d") mudarDirecao(1, 0);
-    });
-
-    // Controles por Gesto (Swipe no Celular)
-    let toqueInicialX = null;
-    let toqueInicialY = null;
-
-    canvas.addEventListener("touchstart", (e) => {
-      toqueInicialX = e.touches[0].clientX;
-      toqueInicialY = e.touches[0].clientY;
-    }, { passive: true });
-
-    canvas.addEventListener("touchend", (e) => {
-      if (!toqueInicialX || !toqueInicialY) return;
-
-      const deltaX = e.changedTouches[0].clientX - toqueInicialX;
-      const deltaY = e.changedTouches[0].clientY - toqueInicialY;
-
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 30) mudarDirecao(1, 0); // Direita
-        else if (deltaX < -30) mudarDirecao(-1, 0); // Esquerda
-      } else {
-        if (deltaY > 30) mudarDirecao(0, 1); // Baixo
-        else if (deltaY < -30) mudarDirecao(0, -1); // Cima
-      }
-
-      toqueInicialX = null;
-      toqueInicialY = null;
-    }, { passive: true });
-
-    iniciarJogo();
-  </script>
-</body>
-</html>
