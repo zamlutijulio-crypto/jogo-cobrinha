@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Buraco Online Multiplayer (4 Jogadores)</title>
-  <!-- Biblioteca PeerJS para Multiplayer Gratuito via WebRTC -->
+  <title>Buraco Online 1v1 (2 Jogadores)</title>
+  <!-- PeerJS para conexão direta e gratuita entre os 2 celulares -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     * {
@@ -26,7 +26,7 @@
       overflow: hidden;
     }
 
-    /* Tela de Conexão / Lobby */
+    /* Lobby */
     #lobby-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -44,7 +44,7 @@
       padding: 24px;
       border-radius: 12px;
       width: 100%;
-      max-width: 360px;
+      max-width: 350px;
       text-align: center;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
@@ -81,73 +81,74 @@
       display: none;
       flex-direction: column;
       height: 100vh;
-      background: #1b5e20; /* Feltro de mesa de cartas */
+      background: #1b5e20;
     }
 
     .header-mesa {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 0.85rem;
       font-weight: bold;
     }
 
-    .jogadores-info {
+    .placar-jogadores {
       display: flex;
       justify-content: space-around;
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.25);
       padding: 6px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
     }
 
-    .jogador-badge {
-      padding: 4px 8px;
+    .tag-jogador {
+      padding: 4px 10px;
       border-radius: 4px;
       background: #334155;
     }
 
-    .jogador-badge.ativo {
+    .tag-jogador.ativo {
       background: #facc15;
       color: #000;
       font-weight: bold;
     }
 
-    /* Centro da Mesa: Monte, Lixo e Jogos Baixados */
+    /* Centro */
     .centro-mesa {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 10px;
-      gap: 15px;
+      padding: 8px;
+      gap: 12px;
       overflow-y: auto;
     }
 
     .pilhas-mesa {
       display: flex;
-      gap: 20px;
+      gap: 25px;
       align-items: center;
     }
 
-    .jogos-baixados {
+    .jogos-mesa {
       width: 100%;
-      min-height: 80px;
+      min-height: 90px;
       background: rgba(0, 0, 0, 0.2);
       border-radius: 8px;
       padding: 8px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
       justify-content: center;
     }
 
     /* Cartas */
     .carta {
-      width: 48px;
-      height: 68px;
+      width: 50px;
+      height: 72px;
       background: #fff;
       color: #000;
       border-radius: 6px;
@@ -155,15 +156,15 @@
       flex-direction: column;
       justify-content: space-between;
       padding: 4px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       cursor: pointer;
       position: relative;
     }
 
     .carta.vermelha { color: #dc2626; }
-    .carta.preta { color: #1e293b; }
+    .carta.preta { color: #0f172a; }
     .carta.verso {
       background: #1e3a8a;
       border: 2px solid #fff;
@@ -171,13 +172,13 @@
 
     .carta.selecionada {
       transform: translateY(-12px);
-      box-shadow: 0 0 10px #facc15;
+      box-shadow: 0 0 12px #facc15;
       border: 2px solid #facc15;
     }
 
-    /* Mão do Jogador (Parte inferior) */
+    /* Mão do Jogador */
     .rodape-jogador {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       padding: 8px;
       display: flex;
       flex-direction: column;
@@ -191,388 +192,60 @@
     }
 
     .btn-acao {
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-radius: 6px;
       border: none;
       font-weight: bold;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       cursor: pointer;
     }
 
     .minha-mao {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       overflow-x: auto;
       padding: 8px 4px;
-      min-height: 84px;
+      min-height: 88px;
       align-items: center;
     }
   </style>
 </head>
 <body>
 
-  <!-- Tela de Entrada e Conexão de Sala -->
+  <!-- Lobby de Conexão -->
   <div id="lobby-screen">
     <div class="card-lobby">
-      <h2>🃏 Buraco 4 Jogadores</h2>
-      <p style="color: #94a3b8; font-size: 0.85rem;">Jogue online em celulares diferentes</p>
+      <h2>🃏 Buraco 1v1 Online</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem;">Partida direta para 2 jogadores</p>
 
-      <input type="text" id="nome-jogador" placeholder="Seu Nome / Apelido" maxlength="10">
-      <input type="text" id="codigo-sala" placeholder="Código da Sala (ex: MESA77)" style="text-transform: uppercase;">
+      <input type="text" id="nome-jogador" placeholder="Seu Nome" maxlength="10">
+      <input type="text" id="codigo-sala" placeholder="Código da Sala (ex: MESA1)" style="text-transform: uppercase;">
 
-      <button class="btn btn-green" onclick="criarSala()">CRIAR SALA (Sou o Jogador 1)</button>
-      <button class="btn btn-blue" onclick="entrarSala()">ENTRAR NA SALA</button>
+      <button class="btn btn-green" onclick="criarSala()">CRIAR SALA (Jogador 1)</button>
+      <button class="btn btn-blue" onclick="entrarSala()">ENTRAR NA SALA (Jogador 2)</button>
 
       <div id="status-conexao" style="margin-top: 12px; font-size: 0.85rem; color: #facc15;"></div>
     </div>
   </div>
 
-  <!-- Tela da Partida -->
+  <!-- Mesa de Jogo -->
   <div id="game-screen">
     <div class="header-mesa">
       <div>Sala: <span id="lbl-sala">---</span></div>
-      <div id="status-turno" style="color: #facc15;">Aguardando jogadores...</div>
+      <div id="status-turno" style="color: #facc15;">Aguardando Jogador 2...</div>
     </div>
 
-    <!-- Lista de Jogadores na Partida -->
-    <div class="jogadores-info" id="painel-jogadores">
-      <div class="jogador-badge" id="badge-0">J1: Aguardando</div>
-      <div class="jogador-badge" id="badge-1">J2: Aguardando</div>
-      <div class="jogador-badge" id="badge-2">J3: Aguardando</div>
-      <div class="jogador-badge" id="badge-3">J4: Aguardando</div>
+    <!-- Indicador dos 2 Jogadores -->
+    <div class="placar-jogadores">
+      <div class="tag-jogador" id="tag-j0">J1: Aguardando</div>
+      <div class="tag-jogador" id="tag-j1">J2: Aguardando</div>
     </div>
 
     <!-- Centro da Mesa -->
     <div class="centro-mesa">
       <div class="pilhas-mesa">
-        <!-- Monte de Compras -->
+        <!-- Monte -->
         <div style="text-align: center;">
           <div class="carta verso" onclick="comprarMonte()">
-            <span style="font-size: 0.7rem; color: #fff; text-align: center; margin: auto;">MONTE</span>
-          </div>
-          <small id="qtd-monte" style="font-size: 0.75rem;">104 cartas</small>
-        </div>
+            <span style="font-size: 0
 
-        <!-- Lixo / Descarte -->
-        <div style="text-align: center;">
-          <div id="pilha-lixo" onclick="pegarLixo()">
-            <div class="carta" style="border: 2px dashed #94a3b8; background: transparent; color: #fff; display: flex; align-items: center; justify-content: center;">
-              Vazio
-            </div>
-          </div>
-          <small style="font-size: 0.75rem;">LIXO</small>
-        </div>
-      </div>
-
-      <!-- Jogos Baixados na Mesa -->
-      <div style="width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold;">JOGOS NA MESA</div>
-      <div class="jogos-baixados" id="area-jogos-mesa">
-        <span style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">Nenhum jogo baixado ainda</span>
-      </div>
-    </div>
-
-    <!-- Painel Inferior (Mão do Jogador Atual) -->
-    <div class="rodape-jogador">
-      <div class="acoes-turno">
-        <button class="btn-acao btn-green" onclick="baixarJogoSelecionado()">Baixar Jogo</button>
-        <button class="btn-acao btn-orange" onclick="descartarSelecionada()">Descartar Carta</button>
-      </div>
-      <div class="minha-mao" id="area-minha-mao"></div>
-    </div>
-  </div>
-
-  <script>
-    // --- VARIÁVEIS DE REDE E JOGO ---
-    let peer = null;
-    let conexoes = [];
-    let meuId = null;
-    let souHost = false;
-    let meuIndiceJogador = -1;
-    let nomeJogador = "";
-
-    // Estado da partida sincronizado
-    let estadoJogo = {
-      jogadores: [], // [{ id, nome }]
-      vez: 0,
-      faseTurno: 'compra', // 'compra' ou 'descarte'
-      monte: [],
-      lixo: [],
-      maos: [[], [], [], []],
-      jogosMesa: [] // Array de sequencias/jogos
-    };
-
-    let cartasSelecionadas = [];
-
-    const NAIPES = ['♠', '♥', '♦', '♣'];
-    const VALORES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-
-    // --- CONEXÃO PEERJS ---
-    function criarBaralho() {
-      let baralho = [];
-      for (let b = 0; b < 2; b++) { // 2 baralhos completos para Buraco
-        for (let n of NAIPES) {
-          for (let v of VALORES) {
-            baralho.push({ naipe: n, valor: v, id: Math.random().toString(36).substr(2, 9) });
-          }
-        }
-      }
-      return baralho.sort(() => Math.random() - 0.5);
-    }
-
-    function criarSala() {
-      nomeJogador = document.getElementById("nome-jogador").value.trim() || "Jogador 1";
-      const sala = document.getElementById("codigo-sala").value.trim().toUpperCase();
-      if (!sala) return alert("Digite um código para a sala!");
-
-      souHost = true;
-      meuIndiceJogador = 0;
-      atualizarStatus("Criando sala no servidor...");
-
-      peer = new Peer(`buraco-${sala}`);
-
-      peer.on('open', (id) => {
-        document.getElementById("lbl-sala").innerText = sala;
-        estadoJogo.jogadores.push({ id: id, nome: nomeJogador });
-        iniciarInterfaceJogo();
-
-        peer.on('connection', (conn) => {
-          if (estadoJogo.jogadores.length >= 4) {
-            conn.send({ tipo: 'erro', msg: 'Sala Cheia (Máx 4 jogadores)' });
-            return conn.close();
-          }
-
-          conexoes.push(conn);
-          conn.on('data', (dados) => processarMensagemRede(dados, conn));
-        });
-      });
-
-      peer.on('error', (err) => alert("Erro ao criar sala. Talvez esse código já esteja em uso!"));
-    }
-
-    function entrarSala() {
-      nomeJogador = document.getElementById("nome-jogador").value.trim() || "Jogador";
-      const sala = document.getElementById("codigo-sala").value.trim().toUpperCase();
-      if (!sala) return alert("Digite o código da sala!");
-
-      souHost = false;
-      atualizarStatus("Conectando à sala...");
-
-      peer = new Peer();
-      peer.on('open', () => {
-        const connHost = peer.connect(`buraco-${sala}`);
-        conexoes = [connHost];
-
-        connHost.on('open', () => {
-          connHost.send({ tipo: 'entrar', nome: nomeJogador });
-        });
-
-        connHost.on('data', (dados) => processarMensagemRede(dados, connHost));
-      });
-
-      peer.on('error', () => alert("Não foi possível conectar à sala informada."));
-    }
-
-    function processarMensagemRede(dados, conn) {
-      if (souHost) {
-        if (dados.tipo === 'entrar') {
-          const novoIndex = estadoJogo.jogadores.length;
-          estadoJogo.jogadores.push({ id: conn.peer, nome: dados.nome });
-
-          // Se completou 4 jogadores (ou pode iniciar com os que estão conectados)
-          if (estadoJogo.jogadores.length === 4) {
-            iniciarPartidaHost();
-          } else {
-            transmitirEstado();
-          }
-        } else if (dados.tipo === 'acao') {
-          // Atualiza estado vindo de jogadores clientes
-          estadoJogo = dados.novoEstado;
-          transmitirEstado();
-        }
-      } else {
-        if (dados.tipo === 'sincronizar') {
-          estadoJogo = dados.estado;
-          meuIndiceJogador = estadoJogo.jogadores.findIndex(j => j.id === peer.id);
-          iniciarInterfaceJogo();
-          renderizarMesa();
-        }
-      }
-    }
-
-    function iniciarPartidaHost() {
-      estadoJogo.monte = criarBaralho();
-      // Distribui 11 cartas para cada jogador
-      for (let i = 0; i < 4; i++) {
-        estadoJogo.maos[i] = estadoJogo.monte.splice(0, 11);
-      }
-      estadoJogo.lixo = [estadoJogo.monte.pop()];
-      estadoJogo.vez = 0;
-      estadoJogo.faseTurno = 'compra';
-      transmitirEstado();
-      renderizarMesa();
-    }
-
-    function transmitirEstado() {
-      renderizarMesa();
-      conexoes.forEach(c => {
-        if (c.open) c.send({ tipo: 'sincronizar', estado: estadoJogo });
-      });
-    }
-
-    function enviarAcao() {
-      if (souHost) {
-        transmitirEstado();
-      } else {
-        conexoes[0].send({ tipo: 'acao', novoEstado: estadoJogo });
-        renderizarMesa();
-      }
-    }
-
-    // --- INTERFACE E RENDERIZAÇÃO ---
-    function iniciarInterfaceJogo() {
-      document.getElementById("lobby-screen").style.display = "none";
-      document.getElementById("game-screen").style.display = "flex";
-      renderizarMesa();
-    }
-
-    function atualizarStatus(msg) {
-      document.getElementById("status-conexao").innerText = msg;
-    }
-
-    function renderizarMesa() {
-      // Atualizar Badges de Jogadores
-      for (let i = 0; i < 4; i++) {
-        const badge = document.getElementById(`badge-${i}`);
-        if (estadoJogo.jogadores[i]) {
-          badge.innerText = `J${i+1}: ${estadoJogo.jogadores[i].nome}`;
-          badge.className = `jogador-badge ${estadoJogo.vez === i ? 'ativo' : ''}`;
-        } else {
-          badge.innerText = `J${i+1}: Esperando...`;
-          badge.className = 'jogador-badge';
-        }
-      }
-
-      // Status do Turno
-      const meuTurno = estadoJogo.vez === meuIndiceJogador;
-      const statusTurno = document.getElementById("status-turno");
-      if (estadoJogo.jogadores.length < 4) {
-        statusTurno.innerText = `Aguardando jogadores (${estadoJogo.jogadores.length}/4)...`;
-      } else {
-        statusTurno.innerText = meuTurno ? "👉 SEU TURNO!" : `Vez de: ${estadoJogo.jogadores[estadoJogo.vez]?.nome}`;
-      }
-
-      // Renderizar Monte e Lixo
-      document.getElementById("qtd-monte").innerText = `${estadoJogo.monte?.length || 0} cartas`;
-      const divLixo = document.getElementById("pilha-lixo");
-      divLixo.innerHTML = "";
-      if (estadoJogo.lixo && estadoJogo.lixo.length > 0) {
-        const topoLixo = estadoJogo.lixo[estadoJogo.lixo.length - 1];
-        divLixo.appendChild(criarElementoCarta(topoLixo));
-      } else {
-        divLixo.innerHTML = `<div class="carta" style="border: 2px dashed #fff; background: transparent;"></div>`;
-      }
-
-      // Renderizar Jogos Baixados
-      const areaJogos = document.getElementById("area-jogos-mesa");
-      areaJogos.innerHTML = "";
-      if (estadoJogo.jogosMesa && estadoJogo.jogosMesa.length > 0) {
-        estadoJogo.jogosMesa.forEach(jogo => {
-          const divJogo = document.createElement("div");
-          divJogo.style.display = "flex";
-          divJogo.style.gap = "-20px";
-          jogo.forEach(c => divJogo.appendChild(criarElementoCarta(c)));
-          areaJogos.appendChild(divJogo);
-        });
-      } else {
-        areaJogos.innerHTML = `<span style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">Nenhum jogo baixado</span>`;
-      }
-
-      // Renderizar Minha Mão
-      const areaMao = document.getElementById("area-minha-mao");
-      areaMao.innerHTML = "";
-      const minhaMao = estadoJogo.maos[meuIndiceJogador] || [];
-      minhaMao.forEach((carta) => {
-        const el = criarElementoCarta(carta);
-        if (cartasSelecionadas.some(c => c.id === carta.id)) {
-          el.classList.add("selecionada");
-        }
-        el.onclick = () => alternarSelecaoCarta(carta);
-        areaMao.appendChild(el);
-      });
-    }
-
-    function criarElementoCarta(carta) {
-      const el = document.createElement("div");
-      const isVermelha = carta.naipe === '♥' || carta.naipe === '♦';
-      el.className = `carta ${isVermelha ? 'vermelha' : 'preta'}`;
-      el.innerHTML = `
-        <div>${carta.valor}</div>
-        <div style="font-size: 1.2rem; text-align: center;">${carta.naipe}</div>
-        <div style="text-align: right;">${carta.valor}</div>
-      `;
-      return el;
-    }
-
-    function alternarSelecaoCarta(carta) {
-      const index = cartasSelecionadas.findIndex(c => c.id === carta.id);
-      if (index > -1) cartasSelecionadas.splice(index, 1);
-      else cartasSelecionadas.push(carta);
-      renderizarMesa();
-    }
-
-    // --- AÇÕES DO JOGADOR NO TURNO ---
-    function comprarMonte() {
-      if (estadoJogo.vez !== meuIndiceJogador) return alert("Não é seu turno!");
-      if (estadoJogo.faseTurno !== 'compra') return alert("Você já comprou nesta rodada!");
-
-      const cartaComprada = estadoJogo.monte.pop();
-      estadoJogo.maos[meuIndiceJogador].push(cartaComprada);
-      estadoJogo.faseTurno = 'descarte';
-      enviarAcao();
-    }
-
-    function pegarLixo() {
-      if (estadoJogo.vez !== meuIndiceJogador) return alert("Não é seu turno!");
-      if (estadoJogo.faseTurno !== 'compra') return alert("Você já comprou nesta rodada!");
-      if (!estadoJogo.lixo || estadoJogo.lixo.length === 0) return alert("O lixo está vazio!");
-
-      // Pega todas as cartas do lixo
-      estadoJogo.maos[meuIndiceJogador].push(...estadoJogo.lixo);
-      estadoJogo.lixo = [];
-      estadoJogo.faseTurno = 'descarte';
-      enviarAcao();
-    }
-
-    function baixarJogoSelecionado() {
-      if (estadoJogo.vez !== meuIndiceJogador) return alert("Não é seu turno!");
-      if (cartasSelecionadas.length < 3) return alert("Selecione pelo menos 3 cartas para baixar um jogo!");
-
-      // Remove da mão e adiciona na mesa
-      estadoJogo.maos[meuIndiceJogador] = estadoJogo.maos[meuIndiceJogador].filter(
-        c => !cartasSelecionadas.some(sel => sel.id === c.id)
-      );
-
-      estadoJogo.jogosMesa.push([...cartasSelecionadas]);
-      cartasSelecionadas = [];
-      enviarAcao();
-    }
-
-    function descartarSelecionada() {
-      if (estadoJogo.vez !== meuIndiceJogador) return alert("Não é seu turno!");
-      if (estadoJogo.faseTurno !== 'descarte') return alert("Compre uma carta antes de descartar!");
-      if (cartasSelecionadas.length !== 1) return alert("Selecione exatamente 1 carta para descartar!");
-
-      const descarte = cartasSelecionadas[0];
-      estadoJogo.maos[meuIndiceJogador] = estadoJogo.maos[meuIndiceJogador].filter(c => c.id !== descarte.id);
-      estadoJogo.lixo.push(descarte);
-      cartasSelecionadas = [];
-
-      // Passa o turno para o próximo jogador (0 -> 1 -> 2 -> 3 -> 0)
-      estadoJogo.vez = (estadoJogo.vez + 1) % 4;
-      estadoJogo.faseTurno = 'compra';
-
-      enviarAcao();
-    }
-  </script>
-</body>
-</html>
