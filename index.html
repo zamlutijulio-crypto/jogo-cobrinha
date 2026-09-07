@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cobrinha: Lucky Block Edition</title>
+  <title>Jogo da Cobrinha: Lucky Block</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,7 +15,7 @@
     body {
       margin: 0;
       padding: 10px;
-      background-color: #0f172a;
+      background-color: #0b1120;
       color: #f8fafc;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
@@ -23,31 +23,31 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      overflow: hidden;
     }
 
     .painel {
       display: flex;
       justify-content: space-between;
       width: 100%;
-      max-width: 360px;
-      font-size: 1rem;
-      margin-bottom: 6px;
+      max-width: 340px;
+      font-size: 1.1rem;
       font-weight: bold;
+      margin-bottom: 6px;
     }
 
-    #aviso-efeito {
+    #aviso {
       min-height: 24px;
       font-size: 0.95rem;
       font-weight: bold;
-      color: #facc15;
-      margin-bottom: 6px;
+      color: #38bdf8;
       text-align: center;
-      transition: all 0.2s;
+      margin-bottom: 8px;
     }
 
-    .canvas-container {
+    .area-jogo {
       position: relative;
+      width: 340px;
+      height: 340px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -56,34 +56,39 @@
     canvas {
       background-color: #1e293b;
       border: 3px solid #38bdf8;
-      border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      max-width: 92vw;
-      max-height: 44vh;
-    }
-
-    .overlay {
-      display: none;
-      position: absolute;
-      background: rgba(15, 23, 42, 0.96);
-      padding: 18px;
       border-radius: 10px;
-      border: 2px solid #38bdf8;
-      text-align: center;
-      width: 88%;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
 
-    .overlay h2 {
-      margin: 0 0 10px 0;
-      font-size: 1.3rem;
+    /* Menu Flutuante Sobreposto */
+    .modal-menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.92);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
     }
 
-    .dificuldades {
+    .modal-menu h2 {
+      margin: 0 0 12px 0;
+      font-size: 1.4rem;
+      color: #38bdf8;
+    }
+
+    .grid-dificuldades {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-top: 12px;
+      width: 100%;
+      margin-bottom: 16px;
     }
 
     .btn-dif {
@@ -97,16 +102,298 @@
       cursor: pointer;
     }
 
-    .btn-dif.ativo {
+    .btn-dif.selecionado {
       background-color: #38bdf8;
       color: #0f172a;
       border-color: #38bdf8;
     }
 
-    .btn-iniciar {
+    .btn-principal {
       background-color: #22c55e;
       color: #0f172a;
       border: none;
-      padding: 10px 20px;
+      padding: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
 
+    /* Controles para Celular */
+    .controles-mobile {
+      display: grid;
+      grid-template-columns: repeat(3, 56px);
+      grid-template-rows: repeat(3, 56px);
+      gap: 6px;
+      margin-top: 14px;
+    }
 
+    .btn-ctrl {
+      background-color: #334155;
+      color: #38bdf8;
+      border: 2px solid #475569;
+      border-radius: 10px;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn-ctrl:active {
+      background-color: #38bdf8;
+      color: #0f172a;
+    }
+
+    .c-cima { grid-column: 2; grid-row: 1; }
+    .c-esq { grid-column: 1; grid-row: 2; }
+    .c-dir { grid-column: 3; grid-row: 2; }
+    .c-baixo { grid-column: 2; grid-row: 3; }
+  </style>
+</head>
+<body>
+
+  <div class="painel">
+    <div>Pontos: <span id="pontos">0</span></div>
+    <div>Recorde: <span id="recorde">0</span></div>
+  </div>
+
+  <div id="aviso">Escolha a dificuldade e clique em Jogar</div>
+
+  <div class="area-jogo">
+    <canvas id="tela" width="340" height="340"></canvas>
+
+    <div id="menu" class="modal-menu">
+      <h2 id="titulo-modal">🐍 Cobrinha Lucky</h2>
+
+      <div class="grid-dificuldades">
+        <button class="btn-dif" onclick="escolherDificuldade(160, this)">🐢 Lento</button>
+        <button class="btn-dif selecionado" onclick="escolherDificuldade(110, this)">🚶 Normal</button>
+        <button class="btn-dif" onclick="escolherDificuldade(75, this)">⚡ Rápido</button>
+        <button class="btn-dif" onclick="escolherDificuldade(45, this)">🔥 Insano</button>
+      </div>
+
+      <button class="btn-principal" onclick="iniciarPartida()">JOGAR</button>
+    </div>
+  </div>
+
+  <!-- Botões de toque -->
+  <div class="controles-mobile">
+    <button class="btn-ctrl c-cima" onclick="direcionar(0, -1)">▲</button>
+    <button class="btn-ctrl c-esq" onclick="direcionar(-1, 0)">◀</button>
+    <button class="btn-ctrl c-dir" onclick="direcionar(1, 0)">▶</button>
+    <button class="btn-ctrl c-baixo" onclick="direcionar(0, 1)">▼</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("tela");
+    const ctx = canvas.getContext("2d");
+    const spanPontos = document.getElementById("pontos");
+    const spanRecorde = document.getElementById("recorde");
+    const aviso = document.getElementById("aviso");
+    const modalMenu = document.getElementById("menu");
+    const tituloModal = document.getElementById("titulo-modal");
+
+    const grade = 17; // 20x20 blocos (340 / 17 = 20)
+    let cobrinha = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+    let dir = { x: 1, y: 0 };
+    let proxDir = { x: 1, y: 0 };
+    let comida = { x: 5, y: 5 };
+    let luckyBlock = null;
+    let pontos = 0;
+    let recorde = 0;
+    let loop = null;
+    let emJogo = false;
+    let velocidade = 110;
+    let velocidadeOriginal = 110;
+    let controlesInvertidos = false;
+
+    // Carregar recorde com segurança
+    try {
+      recorde = localStorage.getItem("rec_snake") || 0;
+      spanRecorde.innerText = recorde;
+    } catch(e) {}
+
+    function escolherDificuldade(vel, btn) {
+      velocidadeOriginal = vel;
+      velocidade = vel;
+      document.querySelectorAll('.btn-dif').forEach(b => b.classList.remove('selecionado'));
+      btn.classList.add('selecionado');
+    }
+
+    function iniciarPartida() {
+      cobrinha = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+      dir = { x: 1, y: 0 };
+      proxDir = { x: 1, y: 0 };
+      pontos = 0;
+      velocidade = velocidadeOriginal;
+      controlesInvertidos = false;
+      spanPontos.innerText = pontos;
+      luckyBlock = null;
+      modalMenu.style.display = "none";
+      aviso.innerText = "Colete as maçãs e os [ ? ]";
+      aviso.style.color = "#38bdf8";
+      emJogo = true;
+
+      sortearComida();
+      agendarLuckyBlock();
+      reiniciarIntervalo();
+    }
+
+    function reiniciarIntervalo() {
+      if (loop) clearInterval(loop);
+      loop = setInterval(atualizarJogo, velocidade);
+    }
+
+    function sortearComida() {
+      const max = canvas.width / grade;
+      comida = {
+        x: Math.floor(Math.random() * max),
+        y: Math.floor(Math.random() * max)
+      };
+    }
+
+    function agendarLuckyBlock() {
+      if (!emJogo) return;
+      setTimeout(() => {
+        if (emJogo && !luckyBlock) {
+          const max = canvas.width / grade;
+          luckyBlock = {
+            x: Math.floor(Math.random() * max),
+            y: Math.floor(Math.random() * max)
+          };
+          // Desaparece em 7 segundos se não for coletado
+          setTimeout(() => {
+            if (luckyBlock) {
+              luckyBlock = null;
+              agendarLuckyBlock();
+            }
+          }, 7000);
+        }
+      }, Math.random() * 8000 + 7000);
+    }
+
+    function ativarEfeitoLucky() {
+      const efeitos = [
+        { msg: "⭐ BÔNUS: +50 Pontos!", cor: "#4ade80", acao: () => pontos += 50 },
+        { msg: "✂️ BÔNUS: Cobra Encurtada!", cor: "#4ade80", acao: () => { if(cobrinha.length > 3) cobrinha.splice(-3); } },
+        { msg: "🐢 BÔNUS: Câmera Lenta (5s)!", cor: "#4ade80", acao: () => {
+            velocidade = velocidadeOriginal * 1.5;
+            reiniciarIntervalo();
+            setTimeout(() => { velocidade = velocidadeOriginal; reiniciarIntervalo(); }, 5000);
+        }},
+        { msg: "💣 AZAR: -20 Pontos!", cor: "#ef4444", acao: () => pontos = Math.max(0, pontos - 20) },
+        { msg: "⚡ AZAR: Super Turbo (4s)!", cor: "#ef4444", acao: () => {
+            velocidade = Math.max(30, velocidadeOriginal * 0.45);
+            reiniciarIntervalo();
+            setTimeout(() => { velocidade = velocidadeOriginal; reiniciarIntervalo(); }, 4000);
+        }},
+        { msg: "🔄 AZAR: Controles Invertidos (5s)!", cor: "#ef4444", acao: () => {
+            controlesInvertidos = true;
+            setTimeout(() => controlesInvertidos = false, 5000);
+        }}
+      ];
+
+      const sorteado = efeitos[Math.floor(Math.random() * efeitos.length)];
+      aviso.innerText = sorteado.msg;
+      aviso.style.color = sorteado.cor;
+      sorteado.acao();
+
+      spanPontos.innerText = pontos;
+      if (pontos > recorde) {
+        recorde = pontos;
+        spanRecorde.innerText = recorde;
+        try { localStorage.setItem("rec_snake", recorde); } catch(e){}
+      }
+    }
+
+    function atualizarJogo() {
+      dir = proxDir;
+      const cabeca = { x: cobrinha[0].x + dir.x, y: cobrinha[0].y + dir.y };
+      const limite = canvas.width / grade;
+
+      // Colisão paredes ou corpo
+      if (cabeca.x < 0 || cabeca.x >= limite || cabeca.y < 0 || cabeca.y >= limite ||
+          cobrinha.some(s => s.x === cabeca.x && s.y === cabeca.y)) {
+        return morrer();
+      }
+
+      cobrinha.unshift(cabeca);
+
+      // Comeu maçã
+      if (cabeca.x === comida.x && cabeca.y === comida.y) {
+        pontos += 10;
+        spanPontos.innerText = pontos;
+        if (pontos > recorde) {
+          recorde = pontos;
+          spanRecorde.innerText = recorde;
+          try { localStorage.setItem("rec_snake", recorde); } catch(e){}
+        }
+        sortearComida();
+      } 
+      // Pegou Lucky Block
+      else if (luckyBlock && cabeca.x === luckyBlock.x && cabeca.y === luckyBlock.y) {
+        ativarEfeitoLucky();
+        luckyBlock = null;
+        agendarLuckyBlock();
+      } else {
+        cobrinha.pop();
+      }
+
+      desenhar();
+    }
+
+    function desenhar() {
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Maçã
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(comida.x * grade + 1, comida.y * grade + 1, grade - 2, grade - 2);
+
+      // Lucky Block
+      if (luckyBlock) {
+        ctx.fillStyle = "#eab308";
+        ctx.fillRect(luckyBlock.x * grade + 1, luckyBlock.y * grade + 1, grade - 2, grade - 2);
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("?", (luckyBlock.x + 0.5) * grade, (luckyBlock.y + 0.5) * grade);
+      }
+
+      // Cobrinha
+      cobrinha.forEach((s, i) => {
+        ctx.fillStyle = i === 0 ? "#4ade80" : "#22c55e";
+        ctx.fillRect(s.x * grade + 1, s.y * grade + 1, grade - 2, grade - 2);
+      });
+    }
+
+    function morrer() {
+      emJogo = false;
+      clearInterval(loop);
+      tituloModal.innerText = "💀 Fim de Jogo!";
+      modalMenu.style.display = "flex";
+    }
+
+    function direcionar(x, y) {
+      if (!emJogo) return;
+      if (controlesInvertidos) { x = -x; y = -y; }
+      if (x !== 0 && dir.x === 0) proxDir = { x, y: 0 };
+      if (y !== 0 && dir.y === 0) proxDir = { x: 0, y };
+    }
+
+    window.addEventListener("keydown", (e) => {
+      const k = e.key.toLowerCase();
+      if (k === "arrowup" || k === "w") direcionar(0, -1);
+      else if (k === "arrowdown" || k === "s") direcionar(0, 1);
+      else if (k === "arrowleft" || k === "a") direcionar(-1, 0);
+      else if (k === "arrowright" || k === "d") direcionar(1, 0);
+    });
+
+    // Desenhar tela inicial
+    desenhar();
+  </script>
+</body>
+</html>
