@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Buraco Online 1v1 (2 Jogadores)</title>
-  <!-- PeerJS para conexão direta e gratuita entre os 2 celulares -->
+  <title>Buraco Online 1v1</title>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     * {
@@ -17,7 +16,7 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: #0d47a1;
+      background-color: #0b1329;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #fff;
       display: flex;
@@ -30,7 +29,7 @@
     #lobby-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: #0b1e36;
+      background: radial-gradient(circle, #1e293b 0%, #0b1329 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -42,18 +41,24 @@
     .card-lobby {
       background: #1e293b;
       padding: 24px;
-      border-radius: 12px;
+      border-radius: 16px;
       width: 100%;
-      max-width: 350px;
+      max-width: 360px;
       text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      border: 1px solid #334155;
+    }
+
+    .card-lobby h2 {
+      margin: 0 0 4px 0;
+      color: #38bdf8;
     }
 
     .card-lobby input {
       width: 100%;
       padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
+      margin: 10px 0;
+      border-radius: 8px;
       border: 1px solid #475569;
       background: #0f172a;
       color: #fff;
@@ -65,33 +70,49 @@
       width: 100%;
       padding: 12px;
       margin: 6px 0;
-      border-radius: 6px;
+      border-radius: 8px;
       border: none;
       font-weight: bold;
       font-size: 1rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-green { background: #22c55e; color: #0f172a; }
     .btn-blue { background: #38bdf8; color: #0f172a; }
     .btn-orange { background: #f97316; color: #fff; }
+    .btn-zap { background: #25d366; color: #fff; font-weight: bold; }
 
     /* Mesa de Jogo */
     #game-screen {
       display: none;
       flex-direction: column;
       height: 100vh;
-      background: #1b5e20;
+      background: #155e34;
     }
 
     .header-mesa {
-      background: rgba(0, 0, 0, 0.45);
-      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 0.85rem;
       font-weight: bold;
+    }
+
+    .btn-convite-header {
+      background: #25d366;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     .placar-jogadores {
@@ -104,7 +125,7 @@
 
     .tag-jogador {
       padding: 4px 10px;
-      border-radius: 4px;
+      border-radius: 6px;
       background: #334155;
     }
 
@@ -114,7 +135,7 @@
       font-weight: bold;
     }
 
-    /* Centro */
+    /* Centro da Mesa */
     .centro-mesa {
       flex: 1;
       display: flex;
@@ -134,7 +155,7 @@
 
     .jogos-mesa {
       width: 100%;
-      min-height: 90px;
+      min-height: 85px;
       background: rgba(0, 0, 0, 0.2);
       border-radius: 8px;
       padding: 8px;
@@ -212,40 +233,31 @@
 </head>
 <body>
 
-  <!-- Lobby de Conexão -->
+  <!-- Tela Inicial (Lobby) -->
   <div id="lobby-screen">
     <div class="card-lobby">
-      <h2>🃏 Buraco 1v1 Online</h2>
-      <p style="color: #94a3b8; font-size: 0.85rem;">Partida direta para 2 jogadores</p>
+      <h2>🃏 Buraco 1v1</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 12px;">Crie a sala e mande o link pro WhatsApp</p>
 
-      <input type="text" id="nome-jogador" placeholder="Seu Nome" maxlength="10">
-      <input type="text" id="codigo-sala" placeholder="Código da Sala (ex: MESA1)" style="text-transform: uppercase;">
+      <input type="text" id="nome-jogador" placeholder="Seu Nome / Apelido" maxlength="12">
 
-      <button class="btn btn-green" onclick="criarSala()">CRIAR SALA (Jogador 1)</button>
-      <button class="btn btn-blue" onclick="entrarSala()">ENTRAR NA SALA (Jogador 2)</button>
+      <div id="painel-criador">
+        <button class="btn btn-green" onclick="criarSala()">🎮 CRIAR NOVA SALA</button>
+      </div>
+
+      <!-- Aparece se a pessoa abriu direto com o link de convite -->
+      <div id="painel-convidado" style="display: none;">
+        <p id="msg-convite" style="color: #38bdf8; font-weight: bold; font-size: 0.9rem;"></p>
+        <button class="btn btn-blue" onclick="entrarSalaViaLink()">ENTRAR NA PARTIDA</button>
+      </div>
 
       <div id="status-conexao" style="margin-top: 12px; font-size: 0.85rem; color: #facc15;"></div>
     </div>
   </div>
 
-  <!-- Mesa de Jogo -->
+  <!-- Tela da Partida -->
   <div id="game-screen">
     <div class="header-mesa">
       <div>Sala: <span id="lbl-sala">---</span></div>
-      <div id="status-turno" style="color: #facc15;">Aguardando Jogador 2...</div>
-    </div>
-
-    <!-- Indicador dos 2 Jogadores -->
-    <div class="placar-jogadores">
-      <div class="tag-jogador" id="tag-j0">J1: Aguardando</div>
-      <div class="tag-jogador" id="tag-j1">J2: Aguardando</div>
-    </div>
-
-    <!-- Centro da Mesa -->
-    <div class="centro-mesa">
-      <div class="pilhas-mesa">
-        <!-- Monte -->
-        <div style="text-align: center;">
-          <div class="carta verso" onclick="comprarMonte()">
-            <span style="font-size: 0
+      <button id="btn-convite" class="btn-convite-
 
