@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Buraco Master Pro 1v1 & 2v2</title>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <title>Buraco Master Pro</title>
   <style>
     :root {
       --bg-mesa: radial-gradient(circle at 50% 50%, #1a5c37 0%, #0d3820 75%, #082113 100%);
       --gold: #f59e0b;
       --gold-light: #fbbf24;
-      --card-w: 62px;
-      --card-h: 90px;
+      --card-w: 58px;
+      --card-h: 84px;
     }
 
     * {
@@ -33,7 +32,7 @@
       overflow: hidden;
     }
 
-    /* LOBBY PROFISSIONAL */
+    /* TELA INICIAL / MENU */
     #lobby-screen {
       position: fixed;
       inset: 0;
@@ -47,15 +46,14 @@
     }
 
     .card-lobby {
-      background: rgba(30, 41, 59, 0.85);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 28px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 24px;
       border-radius: 20px;
       width: 100%;
-      max-width: 380px;
+      max-width: 360px;
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
     }
 
     .card-lobby h1 {
@@ -65,56 +63,50 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       font-weight: 800;
-      letter-spacing: 1px;
     }
 
     .card-lobby p {
       color: #94a3b8;
       font-size: 0.85rem;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
-    .modo-selector {
+    .secao-titulo {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      text-align: left;
+      font-weight: bold;
+      margin: 10px 0 4px 0;
+      text-transform: uppercase;
+    }
+
+    .grid-opcoes {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
     }
 
-    .btn-modo {
+    .btn-opcao {
       background: #0f172a;
-      border: 2px solid #334155;
+      border: 1px solid #334155;
       color: #94a3b8;
-      padding: 10px;
-      border-radius: 10px;
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
     }
 
-    .btn-modo.ativo {
+    .btn-opcao.ativo {
       border-color: var(--gold);
       color: #fff;
-      background: rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.2);
     }
-
-    .input-pro {
-      width: 100%;
-      padding: 14px;
-      margin: 8px 0;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: #fff;
-      font-size: 1rem;
-      text-align: center;
-      outline: none;
-    }
-    .input-pro:focus { border-color: var(--gold); }
 
     .btn-pro {
       width: 100%;
-      padding: 14px;
+      padding: 13px;
       margin: 6px 0;
       border-radius: 10px;
       border: none;
@@ -126,11 +118,7 @@
       justify-content: center;
       gap: 8px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: transform 0.1s, opacity 0.2s;
     }
-    .btn-pro:active { transform: scale(0.98); }
     .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
     .btn-blue { background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; }
 
@@ -144,72 +132,56 @@
     }
 
     .header-bar {
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(8px);
-      padding: 8px 14px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 0.85rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       z-index: 10;
     }
 
     .placar-box {
       display: flex;
-      gap: 15px;
+      gap: 12px;
       font-weight: bold;
     }
 
-    .tag-dupla {
+    .tag-placar {
       padding: 3px 8px;
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.1);
     }
-    .tag-dupla.sua { border-left: 3px solid #22c55e; }
-    .tag-dupla.rival { border-left: 3px solid #ef4444; }
+    .tag-placar.eu { border-left: 3px solid #22c55e; }
+    .tag-placar.rival { border-left: 3px solid #ef4444; }
 
-    .btn-zap {
-      background: #25d366;
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* ÁREAS DE JOGOS BAIXADOS */
     .mesa-jogos-topo, .mesa-jogos-base {
       flex: 1;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       padding: 8px;
       overflow-x: auto;
       overflow-y: hidden;
       align-items: center;
       background: rgba(0, 0, 0, 0.15);
-      border-radius: 12px;
+      border-radius: 10px;
       margin: 4px 8px;
-      min-height: 95px;
+      min-height: 90px;
     }
 
     .label-area {
       position: absolute;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 800;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.35);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-left: 12px;
+      margin-left: 14px;
       pointer-events: none;
     }
 
-    /* CENTRO: MONTE E LIXO */
+    /* CENTRO DE COMPRAS */
     .centro-compras {
       display: flex;
       justify-content: center;
@@ -228,36 +200,36 @@
 
     .pilha-wrap small {
       font-size: 0.75rem;
-      font-weight: 700;
+      font-weight: bold;
       color: #cbd5e1;
     }
 
-    /* CARTAS PROFISSIONAIS */
+    /* CARTAS */
     .carta {
       width: var(--card-w);
       height: var(--card-h);
       background: #ffffff;
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 5px 6px;
+      padding: 4px 5px;
       font-weight: 800;
-      font-size: 0.95rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+      font-size: 0.9rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
       cursor: pointer;
       position: relative;
       flex-shrink: 0;
       border: 1px solid rgba(0, 0, 0, 0.15);
-      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.12s;
     }
 
     .carta.vermelha { color: #dc2626; }
     .carta.preta { color: #1e293b; }
 
-    .carta .naipe-mini { font-size: 0.8rem; line-height: 1; }
+    .carta .naipe-mini { font-size: 0.75rem; line-height: 1; }
     .carta .naipe-centro {
-      font-size: 1.6rem;
+      font-size: 1.4rem;
       text-align: center;
       line-height: 1;
       margin: auto 0;
@@ -272,42 +244,41 @@
     }
     .carta.verso::after {
       content: "🂠";
-      font-size: 2rem;
+      font-size: 1.8rem;
       color: rgba(255, 255, 255, 0.3);
     }
 
     .carta.selecionada {
-      transform: translateY(-16px) !important;
-      box-shadow: 0 0 16px var(--gold-light) !important;
+      transform: translateY(-14px) !important;
+      box-shadow: 0 0 14px var(--gold-light) !important;
       border: 2px solid var(--gold) !important;
       z-index: 50 !important;
     }
 
     .carta.brilho-jogo {
       border: 2px solid var(--gold);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
       animation: pulso 1.5s infinite alternate;
     }
 
     @keyframes pulso {
       0% { box-shadow: 0 0 4px var(--gold); }
-      100% { box-shadow: 0 0 16px var(--gold-light); }
+      100% { box-shadow: 0 0 14px var(--gold-light); }
     }
 
-    /* GRUPO DE JOGOS NA MESA */
+    /* GRUPOS NA MESA */
     .jogo-grupo {
       display: flex;
       padding: 4px;
       background: rgba(0, 0, 0, 0.25);
-      border-radius: 8px;
+      border-radius: 6px;
       position: relative;
       cursor: pointer;
       border: 1px solid transparent;
     }
-    .jogo-grupo:hover { border-color: var(--gold); }
     .jogo-grupo .carta {
-      margin-right: -42px;
-      box-shadow: -2px 0 6px rgba(0,0,0,0.3);
+      margin-right: -40px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
     }
     .jogo-grupo .carta:last-child { margin-right: 0; }
 
@@ -317,49 +288,41 @@
       right: -6px;
       background: var(--gold);
       color: #000;
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       font-weight: 900;
-      padding: 2px 5px;
+      padding: 2px 4px;
       border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
       z-index: 10;
     }
     .badge-canastra.limpa { background: #22c55e; color: #fff; }
     .badge-canastra.mil { background: #ec4899; color: #fff; }
     .badge-canastra.quinhentos { background: #06b6d4; color: #fff; }
 
-    /* PAINEL INFERIOR / MÃO DO JOGADOR */
+    /* PAINEL INFERIOR */
     .painel-inferior {
-      background: rgba(9, 14, 23, 0.95);
-      backdrop-filter: blur(10px);
+      background: rgba(9, 14, 23, 0.96);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 8px 10px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .botoes-acao {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       justify-content: center;
     }
 
     .btn-acao-game {
-      padding: 10px 14px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
       border: none;
       font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
       text-transform: uppercase;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      transition: all 0.15s;
     }
-    .btn-acao-game:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-acao-game.organizar { background: #3b82f6; color: #fff; }
     .btn-acao-game.baixar { background: #22c55e; color: #052e16; }
     .btn-acao-game.emendar { background: #eab308; color: #422006; }
@@ -369,8 +332,8 @@
       display: flex;
       gap: 4px;
       overflow-x: auto;
-      padding: 18px 8px 6px 8px;
-      min-height: 120px;
+      padding: 16px 6px 4px 6px;
+      min-height: 110px;
       align-items: flex-end;
       -webkit-overflow-scrolling: touch;
     }
@@ -378,7 +341,7 @@
     .minha-mao::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
 
     #status-turno-banner {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 800;
       text-align: center;
       color: var(--gold-light);
@@ -388,49 +351,46 @@
 </head>
 <body>
 
-  <!-- LOBBY -->
+  <!-- MENU / LOBBY -->
   <div id="lobby-screen">
     <div class="card-lobby">
-      <h1>🃏 BURACO PRO</h1>
-      <p>Regras Oficiais: Canastra Real, Mil e Coringa 2</p>
+      <h1>🃏 BURACO MASTER</h1>
+      <p>Regras Oficiais: Canastra Limpa, Suja, 500 e 1000</p>
 
-      <div class="modo-selector">
-        <button id="modo-1v1" class="btn-modo ativo" onclick="selecionarModo('1v1')">1 vs 1 (2 Jog.)</button>
-        <button id="modo-2v2" class="btn-modo" onclick="selecionarModo('2v2')">2 vs 2 (4 Jog.)</button>
+      <div class="secao-titulo">Modo de Jogo:</div>
+      <div class="grid-opcoes" style="grid-template-columns: 1fr 1fr;">
+        <button id="btn-modo-bot" class="btn-opcao ativo" onclick="escolherModo('bot')">🤖 Contra BOT</button>
+        <button id="btn-modo-pvp" class="btn-opcao" onclick="escolherModo('pvp')">👥 2 Jogadores (Zap)</button>
       </div>
 
-      <input type="text" id="nome-jogador" class="input-pro" placeholder="Seu Nome / Apelido" maxlength="12">
-
-      <div id="box-criador">
-        <button id="btn-criar" class="btn-pro btn-gold" onclick="criarSala()">Criar Sala</button>
+      <div id="secao-dificuldade">
+        <div class="secao-titulo">Dificuldade do BOT:</div>
+        <div class="grid-opcoes">
+          <button class="btn-opcao ativo" onclick="escolherDif('facil', this)">Fácil</button>
+          <button class="btn-opcao" onclick="escolherDif('medio', this)">Médio</button>
+          <button class="btn-opcao" onclick="escolherDif('dificil', this)">Difícil</button>
+        </div>
       </div>
 
-      <div id="box-convidado" style="display: none;">
-        <p id="msg-convite" style="color: #38bdf8; font-weight: bold; font-size: 0.9rem; margin-bottom: 8px;"></p>
-        <button id="btn-entrar" class="btn-pro btn-blue" onclick="entrarSalaViaLink()">Entrar na Sala</button>
-      </div>
-
-      <div id="status-lobby" style="margin-top: 14px; font-size: 0.85rem; color: #facc15; font-weight: bold;"></div>
+      <button class="btn-pro btn-gold" onclick="iniciarJogo()">JOGAR AGORA</button>
     </div>
   </div>
 
-  <!-- MESA DO JOGO -->
+  <!-- MESA -->
   <div id="game-screen">
     <div class="header-bar">
       <div class="placar-box">
-        <div class="tag-dupla rival" id="placar-rival">Rival: 0 pts</div>
-        <div class="tag-dupla sua" id="placar-meu">Nós: 0 pts</div>
+        <div class="tag-placar rival" id="placar-rival">BOT: 0 pts</div>
+        <div class="tag-placar eu" id="placar-meu">Você: 0 pts</div>
       </div>
-      <button id="btn-zap" class="btn-zap" onclick="compartilharWhatsApp()">📲 Convidar Zap</button>
+      <button class="btn-opcao" style="padding: 4px 8px;" onclick="voltarMenu()">Sair</button>
     </div>
 
-    <div id="status-turno-banner">Conectando jogadores...</div>
+    <div id="status-turno-banner">Seu Turno!</div>
 
-    <!-- ÁREA SUPERIOR: JOGOS DO ADVERSÁRIO / DUPLA RIVAL -->
-    <div class="label-area" style="top: 48px;">Jogos dos Adversários</div>
+    <div class="label-area" style="top: 48px;">Jogos do Adversário</div>
     <div class="mesa-jogos-topo" id="mesa-rival"></div>
 
-    <!-- CENTRO: MONTE E LIXO -->
     <div class="centro-compras">
       <div class="pilha-wrap">
         <div class="carta verso" onclick="comprarMonte()"></div>
@@ -445,11 +405,9 @@
       </div>
     </div>
 
-    <!-- ÁREA INFERIOR: MEUS JOGOS / MINHA DUPLA -->
-    <div class="label-area" style="bottom: 180px;">Nossos Jogos</div>
+    <div class="label-area" style="bottom: 165px;">Seus Jogos</div>
     <div class="mesa-jogos-base" id="mesa-minha"></div>
 
-    <!-- PAINEL DE AÇÕES E MÃO -->
     <div class="painel-inferior">
       <div class="botoes-acao">
         <button class="btn-acao-game organizar" onclick="organizarMao()">🗂️ Arrumar</button>
@@ -462,141 +420,42 @@
   </div>
 
   <script>
-    // --- ESTADO & CONFIGURAÇÃO ---
-    let peer = null;
-    let conexoes = [];
-    let souHost = false;
-    let meuIndice = -1;
-    let nomeJogador = "";
-    let idSalaHost = "";
-    let modoJogo = '1v1'; // '1v1' ou '2v2'
+    let modoAtual = 'bot';
+    let dificuldadeBot = 'facil';
     let jogoSelecionadoNaMesa = null;
+    let cartasSelecionadas = [];
 
-    let estadoJogo = {
-      modo: '1v1',
-      jogadores: [], // [{ id, nome, time: 0 ou 1 }]
-      vez: 0,
+    let estado = {
+      vez: 0, // 0 = Jogador, 1 = BOT/Rival
       fase: 'compra', // 'compra' ou 'descarte'
       monte: [],
       lixo: [],
-      maos: [[], [], [], []],
-      jogosTime0: [], // Jogos da Dupla A (J0 e J2)
-      jogosTime1: [], // Jogos da Dupla B (J1 e J3)
-      pontosTime0: 0,
-      pontosTime1: 0
+      maoJogador: [],
+      maoRival: [],
+      jogosJogador: [],
+      jogosRival: [],
+      pontosJogador: 0,
+      pontosRival: 0
     };
-
-    let cartasSelecionadas = [];
 
     const NAIPES = ['♥', '♦', '♣', '♠'];
     const VALORES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     const ORDEM_VALORES = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
-    // Checar URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const salaUrl = urlParams.get('sala');
-    const modoUrl = urlParams.get('modo');
-
-    if (salaUrl) {
-      document.getElementById("box-criador").style.display = "none";
-      document.getElementById("box-convidado").style.display = "block";
-      document.getElementById("msg-convite").innerText = `Entrando em Sala ${modoUrl || 'Buraco'}...`;
-      idSalaHost = salaUrl;
-      if (modoUrl) modoJogo = modoUrl;
+    function escolherModo(modo) {
+      modoAtual = modo;
+      document.getElementById("btn-modo-bot").classList.toggle("ativo", modo === 'bot');
+      document.getElementById("btn-modo-pvp").classList.toggle("ativo", modo === 'pvp');
+      document.getElementById("secao-dificuldade").style.display = (modo === 'bot') ? 'block' : 'none';
     }
 
-    function selecionarModo(m) {
-      modoJogo = m;
-      document.getElementById("modo-1v1").classList.toggle("ativo", m === '1v1');
-      document.getElementById("modo-2v2").classList.toggle("ativo", m === '2v2');
+    function escolherDif(dif, btn) {
+      dificuldadeBot = dif;
+      btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('ativo'));
+      btn.classList.add('ativo');
     }
 
-    // --- REGRAS & VALIDAÇÕES DO BURACO ---
-
-    // Checa se 3 cartas são Trinca de Ás (A única trinca permitida)
-    function ehTrincaDeAs(cartas) {
-      return cartas.length >= 3 && cartas.every(c => c.valor === 'A');
-    }
-
-    // Analisa sequência de mesmo naipe considerando o 2 como Coringa Universal
-    function validarSequenciaBuraco(cartas) {
-      if (cartas.length < 3) return { valida: false };
-
-      // Se for trinca pura de Ás
-      if (ehTrincaDeAs(cartas)) {
-        return { valida: true, tipo: 'trinca_as', limpa: true, pontos: 100 };
-      }
-
-      // Proibir trincas de outros números/letras (Ex: 5-5-5 ou K-K-K)
-      const todosMesmoValor = cartas.every(c => c.valor === cartas[0].valor);
-      if (todosMesmoValor && cartas[0].valor !== 'A') {
-        return { valida: false, msg: "Trincas de números/letras não são permitidas (apenas trinca de Ás)!" };
-      }
-
-      // Identificar o naipe base da sequência (desconsiderando coringas 2 usados como curinga)
-      const cartasSemCoringa = cartas.filter(c => c.valor !== '2');
-      if (cartasSemCoringa.length === 0) return { valida: false };
-
-      const naipeBase = cartasSemCoringa[0].naipe;
-      const mesmoNaipe = cartasSemCoringa.every(c => c.naipe === naipeBase);
-      if (!mesmoNaipe) return { valida: false, msg: "Todas as cartas devem ser do mesmo naipe!" };
-
-      // Contagem de coringas
-      const coringas = cartas.filter(c => c.valor === '2');
-      if (coringas.length > 1) return { valida: false, msg: "Apenas 1 coringa permitido por jogo!" };
-
-      const temCoringa = coringas.length === 1;
-
-      // Ordenar e validar continuidade matemática
-      // Mapeamento especial para Ás (pode ser 1 no início ou 14 no fim)
-      let valoresNum = cartasSemCoringa.map(c => ORDEM_VALORES[c.valor]).sort((a,b) => a - b);
-
-      let buracos = 0;
-      for (let i = 0; i < valoresNum.length - 1; i++) {
-        let diff = valoresNum[i+1] - valoresNum[i];
-        if (diff === 0) return { valida: false, msg: "Cartas duplicadas no mesmo jogo!" };
-        if (diff > 1) buracos += (diff - 1);
-      }
-
-      if (buracos > 1 || (buracos === 1 && !temCoringa)) {
-        return { valida: false, msg: "Sequência numérica inválida!" };
-      }
-
-      // Classificação de Canastras (7+ cartas)
-      let totalCartas = cartas.length;
-      let ehCanastra = totalCartas >= 7;
-      let tipoCanastra = 'nenhuma';
-      let pontos = 0;
-
-      if (ehCanastra) {
-        if (!temCoringa) {
-          // Checar Canastra de Mil (A até A do mesmo naipe = 14 cartas)
-          if (totalCartas === 14 && cartas.some(c => c.valor === 'A') && cartas.some(c => c.valor === 'K')) {
-            tipoCanastra = 'mil';
-            pontos = 1000;
-          }
-          // Checar Canastra de 500 (A até K do mesmo naipe = 13 cartas)
-          else if (totalCartas === 13 && cartas.some(c => c.valor === 'A') && cartas.some(c => c.valor === 'K')) {
-            tipoCanastra = 'quinhentos';
-            pontos = 500;
-          }
-          // Canastra Limpa comum (7+ cartas sem coringa)
-          else {
-            tipoCanastra = 'limpa';
-            pontos = 200;
-          }
-        } else {
-          // Canastra Suja (7+ cartas com coringa 2)
-          tipoCanastra = 'suja';
-          pontos = 100;
-        }
-      }
-
-      return { valida: true, tipoCanastra, pontos, limpa: !temCoringa };
-    }
-
-    // --- CRIAÇÃO DE BARALHO & REDE ---
-    function criarBaralhoDuplo() {
+    function criarBaralho() {
       let b = [];
       for (let i = 0; i < 2; i++) {
         for (let n of NAIPES) {
@@ -608,193 +467,142 @@
       return b.sort(() => Math.random() - 0.5);
     }
 
-    function criarSala() {
-      nomeJogador = document.getElementById("nome-jogador").value.trim() || "Jogador 1";
-      document.getElementById("btn-criar").disabled = true;
-      document.getElementById("status-lobby").innerText = "Criando mesa no servidor...";
+    function iniciarJogo() {
+      estado.monte = criarBaralho();
+      estado.maoJogador = estado.monte.splice(0, 11);
+      estado.maoRival = estado.monte.splice(0, 11);
+      estado.lixo = [estado.monte.pop()];
+      estado.jogosJogador = [];
+      estado.jogosRival = [];
+      estado.pontosJogador = 0;
+      estado.pontosRival = 0;
+      estado.vez = 0;
+      estado.fase = 'compra';
+      cartasSelecionadas = [];
+      jogoSelecionadoNaMesa = null;
 
-      peer = new Peer();
-
-      peer.on('open', (id) => {
-        idSalaHost = id;
-        souHost = true;
-        meuIndice = 0;
-        estadoJogo.modo = modoJogo;
-        estadoJogo.jogadores.push({ id: id, nome: nomeJogador, time: 0 });
-
-        iniciarTelaJogo();
-        atualizarPlacarEStatus();
-
-        peer.on('connection', (conn) => {
-          const maxJogadores = estadoJogo.modo === '1v1' ? 2 : 4;
-          if (estadoJogo.jogadores.length >= maxJogadores) {
-            conn.send({ tipo: 'erro', msg: 'Sala Cheia!' });
-            return conn.close();
-          }
-
-          conexoes.push(conn);
-          conn.on('data', (d) => tratarRede(d, conn));
-        });
-      });
-
-      peer.on('error', () => {
-        document.getElementById("btn-criar").disabled = false;
-        alert("Erro ao criar a sala. Tente novamente!");
-      });
-    }
-
-    function entrarSalaViaLink() {
-      nomeJogador = document.getElementById("nome-jogador").value.trim() || "Jogador Convidado";
-      document.getElementById("btn-entrar").disabled = true;
-      document.getElementById("status-lobby").innerText = "Conectando à sala...";
-
-      peer = new Peer();
-
-      peer.on('open', () => {
-        const conn = peer.connect(idSalaHost);
-        conexoes = [conn];
-
-        conn.on('open', () => {
-          conn.send({ tipo: 'entrar', nome: nomeJogador });
-        });
-
-        conn.on('data', (d) => tratarRede(d, conn));
-      });
-
-      peer.on('error', () => alert("Erro ao conectar na sala!"));
-    }
-
-    function compartilharWhatsApp() {
-      const link = `${window.location.origin}${window.location.pathname}?sala=${idSalaHost}&modo=${estadoJogo.modo}`;
-      const msg = `Mesa de Buraco aberta (${estadoJogo.modo.toUpperCase()})! Clica no link para jogar comigo: ${link}`;
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-      if (navigator.clipboard) navigator.clipboard.writeText(link);
-    }
-
-    function tratarRede(dados, conn) {
-      if (souHost) {
-        if (dados.tipo === 'entrar') {
-          const novoIdx = estadoJogo.jogadores.length;
-          // Dupla 0: J0, J2 | Dupla 1: J1, J3
-          const time = (novoIdx % 2 === 0) ? 0 : 1;
-          estadoJogo.jogadores.push({ id: conn.peer, nome: dados.nome, time: time });
-
-          const max = estadoJogo.modo === '1v1' ? 2 : 4;
-          if (estadoJogo.jogadores.length === max) {
-            document.getElementById("btn-zap").style.display = "none";
-            iniciarPartida();
-          } else {
-            sincronizar();
-          }
-        } else if (dados.tipo === 'acao') {
-          estadoJogo = dados.estado;
-          sincronizar();
-        }
-      } else {
-        if (dados.tipo === 'sincronizar') {
-          estadoJogo = dados.estado;
-          meuIndice = estadoJogo.jogadores.findIndex(j => j.id === peer.id);
-          document.getElementById("btn-zap").style.display = "none";
-          iniciarTelaJogo();
-          renderizar();
-        }
-      }
-    }
-
-    function iniciarPartida() {
-      estadoJogo.monte = criarBaralhoDuplo();
-      const numJog = estadoJogo.jogadores.length;
-      for (let i = 0; i < numJog; i++) {
-        estadoJogo.maos[i] = estadoJogo.monte.splice(0, 11);
-      }
-      estadoJogo.lixo = [estadoJogo.monte.pop()];
-      estadoJogo.vez = 0;
-      estadoJogo.fase = 'compra';
-      sincronizar();
-    }
-
-    function sincronizar() {
-      renderizar();
-      conexoes.forEach(c => {
-        if (c.open) c.send({ tipo: 'sincronizar', estado: estadoJogo });
-      });
-    }
-
-    function enviarMudanca() {
-      if (souHost) sincronizar();
-      else {
-        conexoes[0].send({ tipo: 'acao', estado: estadoJogo });
-        renderizar();
-      }
-    }
-
-    function iniciarTelaJogo() {
       document.getElementById("lobby-screen").style.display = "none";
       document.getElementById("game-screen").style.display = "flex";
       renderizar();
     }
 
-    // --- RENDERIZAÇÃO PROFISSIONAL & ESPELHAMENTO ---
-    function renderizar() {
-      atualizarPlacarEStatus();
+    function voltarMenu() {
+      document.getElementById("lobby-screen").style.display = "flex";
+      document.getElementById("game-screen").style.display = "none";
+    }
 
-      // Monte e Lixo
-      document.getElementById("qtd-monte").innerText = `${estadoJogo.monte?.length || 0} cartas`;
+    // --- REGRAS DO BURACO ---
+    function validarSequenciaBuraco(cartas) {
+      if (cartas.length < 3) return { valida: false };
+
+      // Trinca de Ás
+      if (cartas.length >= 3 && cartas.every(c => c.valor === 'A')) {
+        return { valida: true, tipoCanastra: 'nenhuma', pontos: 100 };
+      }
+
+      // Proibir outras trincas
+      if (cartas.every(c => c.valor === cartas[0].valor) && cartas[0].valor !== 'A') {
+        return { valida: false, msg: "Apenas trincas de Ás são permitidas!" };
+      }
+
+      const semCoringa = cartas.filter(c => c.valor !== '2');
+      if (semCoringa.length === 0) return { valida: false };
+
+      const naipeBase = semCoringa[0].naipe;
+      if (!semCoringa.every(c => c.naipe === naipeBase)) {
+        return { valida: false, msg: "Cartas precisam ser do mesmo naipe!" };
+      }
+
+      const coringas = cartas.filter(c => c.valor === '2');
+      if (coringas.length > 1) return { valida: false, msg: "Apenas 1 coringa permitido por jogo!" };
+
+      let valores = semCoringa.map(c => ORDEM_VALORES[c.valor]).sort((a,b) => a - b);
+      let buracos = 0;
+      for (let i = 0; i < valores.length - 1; i++) {
+        let diff = valores[i+1] - valores[i];
+        if (diff === 0) return { valida: false, msg: "Cartas repetidas!" };
+        if (diff > 1) buracos += (diff - 1);
+      }
+
+      if (buracos > 1 || (buracos === 1 && coringas.length === 0)) {
+        return { valida: false, msg: "Sequência inválida!" };
+      }
+
+      // Classificar Canastras
+      let total = cartas.length;
+      let temCoringa = coringas.length === 1;
+      let tipoCanastra = 'nenhuma';
+      let pontos = 0;
+
+      if (total >= 7) {
+        if (!temCoringa) {
+          if (total === 14) { tipoCanastra = 'mil'; pontos = 1000; }
+          else if (total === 13) { tipoCanastra = 'quinhentos'; pontos = 500; }
+          else { tipoCanastra = 'limpa'; pontos = 200; }
+        } else {
+          tipoCanastra = 'suja'; pontos = 100;
+        }
+      }
+
+      return { valida: true, tipoCanastra, pontos };
+    }
+
+    // --- RENDERIZAÇÃO ---
+    function renderizar() {
+      document.getElementById("placar-meu").innerText = `Você: ${estado.pontosJogador} pts`;
+      document.getElementById("placar-rival").innerText = `${modoAtual === 'bot' ? 'BOT' : 'Rival'}: ${estado.pontosRival} pts`;
+      document.getElementById("qtd-monte").innerText = `${estado.monte.length} cartas`;
+
+      const banner = document.getElementById("status-turno-banner");
+      banner.innerText = (estado.vez === 0) ? "👉 SEU TURNO!" : "🤖 Turno do BOT...";
+
+      // Lixo
       const divLixo = document.getElementById("pilha-lixo");
       divLixo.innerHTML = "";
-      if (estadoJogo.lixo && estadoJogo.lixo.length > 0) {
-        divLixo.appendChild(criarCartaDOM(estadoJogo.lixo[estadoJogo.lixo.length - 1]));
+      if (estado.lixo.length > 0) {
+        divLixo.appendChild(criarCartaDOM(estado.lixo[estado.lixo.length - 1]));
       } else {
         divLixo.innerHTML = `<div class="carta" style="border: 2px dashed #94a3b8; background: transparent;"></div>`;
       }
 
-      // Espelhamento de Jogos na Mesa (Nossos Jogos embaixo, Adversário no topo)
-      const meuTime = estadoJogo.jogadores[meuIndice]?.time || 0;
-      const meusJogos = (meuTime === 0) ? estadoJogo.jogosTime0 : estadoJogo.jogosTime1;
-      const jogosRival = (meuTime === 0) ? estadoJogo.jogosTime1 : estadoJogo.jogosTime0;
+      // Jogos
+      renderizarJogos("mesa-minha", estado.jogosJogador, true);
+      renderizarJogos("mesa-rival", estado.jogosRival, false);
 
-      renderizarAreaJogos("mesa-minha", meusJogos, true);
-      renderizarAreaJogos("mesa-rival", jogosRival, false);
-
-      // Minha Mão com detector de brilho de jogos
+      // Mão do Jogador
       const areaMao = document.getElementById("area-minha-mao");
       areaMao.innerHTML = "";
-      const minhaMao = estadoJogo.maos[meuIndice] || [];
-      const idsBrilho = identificarJogosNaMao(minhaMao);
+      const idsBrilho = identificarJogosNaMao(estado.maoJogador);
 
-      minhaMao.forEach(carta => {
+      estado.maoJogador.forEach(carta => {
         const el = criarCartaDOM(carta);
         if (idsBrilho.has(carta.id)) el.classList.add("brilho-jogo");
         if (cartasSelecionadas.some(c => c.id === carta.id)) el.classList.add("selecionada");
-        el.onclick = () => alternarSelecaoCarta(carta);
+        el.onclick = () => alternarSelecao(carta);
         areaMao.appendChild(el);
       });
     }
 
-    function renderizarAreaJogos(elementId, listaJogos, ehMeuTime) {
-      const container = document.getElementById(elementId);
+    function renderizarJogos(idElemento, lista, clicavel) {
+      const container = document.getElementById(idElemento);
       container.innerHTML = "";
-
-      if (!listaJogos || listaJogos.length === 0) {
-        container.innerHTML = `<span style="color: rgba(255,255,255,0.25); font-size: 0.8rem; margin: auto;">Nenhum jogo baixado</span>`;
+      if (lista.length === 0) {
+        container.innerHTML = `<span style="color: rgba(255,255,255,0.25); font-size: 0.75rem; margin: auto;">Nenhum jogo baixado</span>`;
         return;
       }
 
-      listaJogos.forEach((jogoObj, idx) => {
+      lista.forEach((jogo, idx) => {
         const grupo = document.createElement("div");
         grupo.className = "jogo-grupo";
-
-        // Badge de Canastra se aplicável
-        if (jogoObj.canastra && jogoObj.canastra !== 'nenhuma') {
-          const badge = document.createElement("div");
-          badge.className = `badge-canastra ${jogoObj.canastra}`;
-          badge.innerText = jogoObj.canastra.toUpperCase();
-          grupo.appendChild(badge);
+        if (jogo.canastra !== 'nenhuma') {
+          const b = document.createElement("div");
+          b.className = `badge-canastra ${jogo.canastra}`;
+          b.innerText = jogo.canastra.toUpperCase();
+          grupo.appendChild(b);
         }
+        jogo.cartas.forEach(c => grupo.appendChild(criarCartaDOM(c)));
 
-        jogoObj.cartas.forEach(c => grupo.appendChild(criarCartaDOM(c)));
-
-        if (ehMeuTime) {
+        if (clicavel) {
           grupo.onclick = () => {
             jogoSelecionadoNaMesa = idx;
             document.querySelectorAll("#mesa-minha .jogo-grupo").forEach((g, i) => {
@@ -802,7 +610,6 @@
             });
           };
         }
-
         container.appendChild(grupo);
       });
     }
@@ -819,44 +626,20 @@
       return el;
     }
 
-    function atualizarPlacarEStatus() {
-      const meuTime = estadoJogo.jogadores[meuIndice]?.time || 0;
-      const ptsMeus = (meuTime === 0) ? estadoJogo.pontosTime0 : estadoJogo.pontosTime1;
-      const ptsRival = (meuTime === 0) ? estadoJogo.pontosTime1 : estadoJogo.pontosTime0;
-
-      document.getElementById("placar-meu").innerText = `Nós: ${ptsMeus} pts`;
-      document.getElementById("placar-rival").innerText = `Rival: ${ptsRival} pts`;
-
-      const max = estadoJogo.modo === '1v1' ? 2 : 4;
-      const statusBanner = document.getElementById("status-turno-banner");
-
-      if (estadoJogo.jogadores.length < max) {
-        statusBanner.innerText = `Aguardando jogadores (${estadoJogo.jogadores.length}/${max})...`;
-      } else {
-        const nomeVez = estadoJogo.jogadores[estadoJogo.vez]?.nome;
-        statusBanner.innerText = (estadoJogo.vez === meuIndice) ? "👉 SEU TURNO!" : `Vez de: ${nomeVez}`;
-      }
-    }
-
-    function alternarSelecaoCarta(carta) {
-      const idx = cartasSelecionadas.findIndex(c => c.id === carta.id);
+    function alternarSelecao(c) {
+      const idx = cartasSelecionadas.findIndex(item => item.id === c.id);
       if (idx > -1) cartasSelecionadas.splice(idx, 1);
-      else cartasSelecionadas.push(carta);
+      else cartasSelecionadas.push(c);
       renderizar();
     }
 
-    // --- ARРУMAR CARTAS & DETECTAR JOGOS ---
     function organizarMao() {
-      const minhaMao = estadoJogo.maos[meuIndice];
-      if (!minhaMao) return;
-
-      minhaMao.sort((a, b) => {
+      estado.maoJogador.sort((a, b) => {
         const nA = NAIPES.indexOf(a.naipe);
         const nB = NAIPES.indexOf(b.naipe);
         if (nA !== nB) return nA - nB;
         return ORDEM_VALORES[a.valor] - ORDEM_VALORES[b.valor];
       });
-
       renderizar();
     }
 
@@ -864,120 +647,130 @@
       const ids = new Set();
       if (!mao || mao.length < 3) return ids;
 
-      // Trinca de Ás
       const ases = mao.filter(c => c.valor === 'A');
       if (ases.length >= 3) ases.forEach(c => ids.add(c.id));
 
-      // Sequências por naipe (com e sem 2)
       NAIPES.forEach(naipe => {
         const cartasNaipe = mao.filter(c => c.naipe === naipe && c.valor !== '2');
-        if (cartasNaipe.length >= 2) {
-          const coringa = mao.find(c => c.valor === '2');
-          if (cartasNaipe.length >= 3 || coringa) {
-            cartasNaipe.forEach(c => ids.add(c.id));
-            if (coringa) ids.add(coringa.id);
-          }
+        const coringa = mao.find(c => c.valor === '2');
+        if (cartasNaipe.length >= 3 || (cartasNaipe.length >= 2 && coringa)) {
+          cartasNaipe.forEach(c => ids.add(c.id));
+          if (coringa) ids.add(coringa.id);
         }
       });
-
       return ids;
     }
 
-    // --- AÇÕES DO JOGO ---
+    // --- AÇÕES DO JOGADOR ---
     function comprarMonte() {
-      if (estadoJogo.vez !== meuIndice) return alert("Aguarde seu turno!");
-      if (estadoJogo.fase !== 'compra') return alert("Você já comprou nesta rodada!");
+      if (estado.vez !== 0) return alert("Aguarde o turno do adversário!");
+      if (estado.fase !== 'compra') return alert("Você já comprou nesta rodada!");
 
-      estadoJogo.maos[meuIndice].push(estadoJogo.monte.pop());
-      estadoJogo.fase = 'descarte';
-      enviarMudanca();
+      estado.maoJogador.push(estado.monte.pop());
+      estado.fase = 'descarte';
+      renderizar();
     }
 
     function pegarLixo() {
-      if (estadoJogo.vez !== meuIndice) return alert("Aguarde seu turno!");
-      if (estadoJogo.fase !== 'compra') return alert("Você já comprou nesta rodada!");
-      if (!estadoJogo.lixo || estadoJogo.lixo.length === 0) return alert("O lixo está vazio!");
+      if (estado.vez !== 0) return alert("Aguarde o turno do adversário!");
+      if (estado.fase !== 'compra') return alert("Você já comprou nesta rodada!");
+      if (estado.lixo.length === 0) return alert("O lixo está vazio!");
 
-      estadoJogo.maos[meuIndice].push(...estadoJogo.lixo);
-      estadoJogo.lixo = [];
-      estadoJogo.fase = 'descarte';
-      enviarMudanca();
+      estado.maoJogador.push(...estado.lixo);
+      estado.lixo = [];
+      estado.fase = 'descarte';
+      renderizar();
     }
 
     function tentarBaixarJogo() {
-      if (estadoJogo.vez !== meuIndice) return alert("Aguarde seu turno!");
-      if (cartasSelecionadas.length < 3) return alert("Selecione pelo menos 3 cartas para baixar um jogo!");
+      if (estado.vez !== 0) return alert("Aguarde o seu turno!");
+      if (cartasSelecionadas.length < 3) return alert("Selecione pelo menos 3 cartas!");
 
       const validacao = validarSequenciaBuraco(cartasSelecionadas);
-      if (!validacao.valida) {
-        return alert(validacao.msg || "Combinação inválida de cartas!");
-      }
+      if (!validacao.valida) return alert(validacao.msg || "Combinação inválida!");
 
-      // Remover da mão
-      estadoJogo.maos[meuIndice] = estadoJogo.maos[meuIndice].filter(
-        c => !cartasSelecionadas.some(sel => sel.id === c.id)
-      );
-
-      const meuTime = estadoJogo.jogadores[meuIndice].time;
-      const novoJogo = {
-        cartas: [...cartasSelecionadas],
-        canastra: validacao.tipoCanastra
-      };
-
-      if (meuTime === 0) {
-        estadoJogo.jogosTime0.push(novoJogo);
-        estadoJogo.pontosTime0 += validacao.pontos;
-      } else {
-        estadoJogo.jogosTime1.push(novoJogo);
-        estadoJogo.pontosTime1 += validacao.pontos;
-      }
-
+      estado.maoJogador = estado.maoJogador.filter(c => !cartasSelecionadas.some(s => s.id === c.id));
+      estado.jogosJogador.push({ cartas: [...cartasSelecionadas], canastra: validacao.tipoCanastra });
+      estado.pontosJogador += validacao.pontos;
       cartasSelecionadas = [];
-      enviarMudanca();
+      renderizar();
     }
 
     function tentarEmendarCarta() {
-      if (estadoJogo.vez !== meuIndice) return alert("Aguarde seu turno!");
-      if (cartasSelecionadas.length !== 1) return alert("Selecione exatamente 1 carta da sua mão para emendar!");
-      if (jogoSelecionadoNaMesa === null) return alert("Clique em um jogo já baixado na sua mesa para emendar a carta!");
+      if (estado.vez !== 0) return alert("Aguarde seu turno!");
+      if (cartasSelecionadas.length !== 1) return alert("Selecione 1 carta para emendar!");
+      if (jogoSelecionadoNaMesa === null) return alert("Selecione um jogo na sua mesa primeiro!");
 
-      const meuTime = estadoJogo.jogadores[meuIndice].time;
-      const jogos = (meuTime === 0) ? estadoJogo.jogosTime0 : estadoJogo.jogosTime1;
-      const jogoAlvo = jogos[jogoSelecionadoNaMesa];
+      const alvo = estado.jogosJogador[jogoSelecionadoNaMesa];
+      const novo = [...alvo.cartas, cartasSelecionadas[0]];
+      const validacao = validarSequenciaBuraco(novo);
 
-      const novoConjunto = [...jogoAlvo.cartas, cartasSelecionadas[0]];
-      const validacao = validarSequenciaBuraco(novoConjunto);
+      if (!validacao.valida) return alert("Essa carta não encaixa nesse jogo!");
 
-      if (!validacao.valida) {
-        return alert("Esta carta não encaixa nesse jogo!");
-      }
-
-      // Aplicar emenda
-      const carta = cartasSelecionadas[0];
-      estadoJogo.maos[meuIndice] = estadoJogo.maos[meuIndice].filter(c => c.id !== carta.id);
-      jogoAlvo.cartas = novoConjunto;
-      jogoAlvo.canastra = validacao.tipoCanastra;
-
-      if (meuTime === 0) estadoJogo.pontosTime0 += validacao.pontos;
-      else estadoJogo.pontosTime1 += validacao.pontos;
-
+      const c = cartasSelecionadas[0];
+      estado.maoJogador = estado.maoJogador.filter(item => item.id !== c.id);
+      alvo.cartas = novo;
+      alvo.canastra = validacao.tipoCanastra;
+      estado.pontosJogador += validacao.pontos;
       cartasSelecionadas = [];
-      enviarMudanca();
+      renderizar();
     }
 
     function descartarSelecionada() {
-      if (estadoJogo.vez !== meuIndice) return alert("Aguarde seu turno!");
-      if (estadoJogo.fase !== 'descarte') return alert("Você precisa comprar uma carta antes de descartar!");
-      if (cartasSelecionadas.length !== 1) return alert("Selecione exatamente 1 carta para descartar!");
+      if (estado.vez !== 0) return alert("Aguarde seu turno!");
+      if (estado.fase !== 'descarte') return alert("Compre uma carta antes de descartar!");
+      if (cartasSelecionadas.length !== 1) return alert("Selecione 1 carta para descartar!");
 
-      const carta = cartasSelecionadas[0];
-      estadoJogo.maos[meuIndice] = estadoJogo.maos[meuIndice].filter(c => c.id !== carta.id);
-      estadoJogo.lixo.push(carta);
+      const c = cartasSelecionadas[0];
+      estado.maoJogador = estado.maoJogador.filter(item => item.id !== c.id);
+      estado.lixo.push(c);
       cartasSelecionadas = [];
+      estado.vez = 1;
+      estado.fase = 'compra';
+      jogoSelecionadoNaMesa = null;
+      renderizar();
 
-      // Passar turno para o próximo (no 1v1 alterna 0-1, no 2v2 faz 0->1->2->3->0)
-      const totalJog = estadoJogo.jogadores.length;
-      estadoJogo.vez = (estadoJogo.vez + 1) % totalJog;
-      estadoJogo.fase = 'compra';
-      jogoSelecionadoNa
+      if (modoAtual === 'bot') {
+        setTimeout(turnoDoBot, 1000);
+      }
+    }
 
+    // --- INTELIGÊNCIA ARTIFICIAL DO BOT ---
+    function turnoDoBot() {
+      // 1. Compra
+      if (dificuldadeBot === 'dificil' && estado.lixo.length > 0 && Math.random() > 0.5) {
+        estado.maoRival.push(...estado.lixo);
+        estado.lixo = [];
+      } else {
+        estado.maoRival.push(estado.monte.pop());
+      }
+
+      // 2. Tentar Baixar Jogos
+      if (dificuldadeBot !== 'facil') {
+        NAIPES.forEach(n => {
+          const cartasNaipe = estado.maoRival.filter(c => c.naipe === n);
+          if (cartasNaipe.length >= 3) {
+            cartasNaipe.sort((a,b) => ORDEM_VALORES[a.valor] - ORDEM_VALORES[b.valor]);
+            const valid = validarSequenciaBuraco(cartasNaipe.slice(0, 3));
+            if (valid.valida) {
+              const idsBaixar = cartasNaipe.slice(0, 3).map(c => c.id);
+              estado.maoRival = estado.maoRival.filter(c => !idsBaixar.includes(c.id));
+              estado.jogosRival.push({ cartas: cartasNaipe.slice(0, 3), canastra: valid.tipoCanastra });
+              estado.pontosRival += valid.pontos;
+            }
+          }
+        });
+      }
+
+      // 3. Descarte do Bot
+      setTimeout(() => {
+        let descarte = estado.maoRival.pop();
+        estado.lixo.push(descarte);
+        estado.vez = 0;
+        estado.fase = 'compra';
+        renderizar();
+      }, 800);
+    }
+  </script>
+</body>
+</html>
