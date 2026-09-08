@@ -83,6 +83,7 @@
     .btn-green { background: #22c55e; color: #0f172a; }
     .btn-blue { background: #38bdf8; color: #0f172a; }
     .btn-orange { background: #f97316; color: #fff; }
+    .btn-purple { background: #a855f7; color: #fff; }
 
     #game-screen {
       display: none;
@@ -92,7 +93,7 @@
     }
 
     .header-mesa {
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.45);
       padding: 8px 12px;
       display: flex;
       justify-content: space-between;
@@ -151,77 +152,107 @@
 
     .jogos-mesa {
       width: 100%;
-      min-height: 85px;
+      min-height: 80px;
       background: rgba(0, 0, 0, 0.2);
       border-radius: 8px;
       padding: 8px;
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 12px;
       align-items: center;
       justify-content: center;
     }
 
+    /* Cartas - Tamanho Maior e Destaque */
     .carta {
-      width: 50px;
-      height: 72px;
+      width: 60px;
+      height: 88px;
       background: #fff;
       color: #000;
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 4px;
-      font-size: 0.9rem;
+      padding: 6px;
+      font-size: 1rem;
       font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
       cursor: pointer;
       position: relative;
+      flex-shrink: 0;
+      transition: transform 0.15s, box-shadow 0.15s;
     }
 
     .carta.vermelha { color: #dc2626; }
     .carta.preta { color: #0f172a; }
+
     .carta.verso {
-      background: #1e3a8a;
+      background: linear-gradient(135deg, #1e3a8a, #0f172a);
       border: 2px solid #fff;
     }
 
     .carta.selecionada {
-      transform: translateY(-12px);
-      box-shadow: 0 0 12px #facc15;
-      border: 2px solid #facc15;
+      transform: translateY(-16px) !important;
+      box-shadow: 0 0 16px #38bdf8 !important;
+      border: 2.5px solid #38bdf8 !important;
+      z-index: 20 !important;
     }
 
+    /* Efeito de Brilho Dourado para Jogos Formados */
+    .carta.brilho-jogo {
+      border: 2px solid #facc15;
+      box-shadow: 0 0 12px #facc15, inset 0 0 6px rgba(250, 204, 21, 0.4);
+      animation: pulsoBrilho 1.8s infinite alternate;
+    }
+
+    @keyframes pulsoBrilho {
+      0% { box-shadow: 0 0 6px #facc15; }
+      100% { box-shadow: 0 0 16px #facc15, 0 0 8px #fef08a; }
+    }
+
+    /* Rodapé da Mão */
     .rodape-jogador {
-      background: rgba(0, 0, 0, 0.6);
-      padding: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 8px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .acoes-turno {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .btn-acao {
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 6px;
       border: none;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       cursor: pointer;
     }
 
+    /* Área da Mão com Leque e Rolagem Suave */
     .minha-mao {
       display: flex;
       gap: 6px;
       overflow-x: auto;
-      padding: 8px 4px;
-      min-height: 88px;
-      align-items: center;
+      padding: 14px 10px 6px 10px;
+      min-height: 110px;
+      align-items: flex-end;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .minha-mao::-webkit-scrollbar {
+      height: 6px;
+    }
+    .minha-mao::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
     }
   </style>
 </head>
@@ -286,10 +317,12 @@
       </div>
     </div>
 
+    <!-- Painel Inferior -->
     <div class="rodape-jogador">
       <div class="acoes-turno">
-        <button class="btn-acao btn-green" onclick="baixarJogoSelecionado()">Baixar Jogo</button>
-        <button class="btn-acao btn-orange" onclick="descartarSelecionada()">Descartar</button>
+        <button class="btn-acao btn-purple" onclick="organizarMao()">🗂️ Arrumar Cartas</button>
+        <button class="btn-acao btn-green" onclick="baixarJogoSelecionado()">✨ Baixar Jogo</button>
+        <button class="btn-acao btn-orange" onclick="descartarSelecionada()">🗑️ Descartar</button>
       </div>
       <div class="minha-mao" id="area-minha-mao"></div>
     </div>
@@ -314,10 +347,10 @@
     };
 
     let cartasSelecionadas = [];
-    const NAIPES = ['♠', '♥', '♦', '♣'];
+    const NAIPES = ['♥', '♦', '♣', '♠']; // Ordem visual
     const VALORES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    const MAPA_VALORES = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 };
 
-    // Checa se abriu pelo link do Zap
     const urlParams = new URLSearchParams(window.location.search);
     const salaPelaUrl = urlParams.get('sala');
 
@@ -349,7 +382,6 @@
       document.getElementById("btn-criar").disabled = true;
       atualizarStatus("Criando sala no servidor...");
 
-      // Cria um Peer com ID dinâmico garantido
       peer = new Peer();
 
       peer.on('open', (id) => {
@@ -370,7 +402,7 @@
         });
       });
 
-      peer.on('error', (err) => {
+      peer.on('error', () => {
         document.getElementById("btn-criar").disabled = false;
         atualizarStatus("Erro ao conectar no servidor. Tente novamente.");
       });
@@ -383,7 +415,7 @@
 
       peer = new Peer();
 
-      peer.on('open', (meuId) => {
+      peer.on('open', () => {
         souHost = false;
         meuIndice = 1;
 
@@ -411,14 +443,8 @@
     function compartilharWhatsApp() {
       const linkJogo = `${window.location.origin}${window.location.pathname}?sala=${idSalaHost}`;
       const textoZap = `Bora jogar Buraco comigo? Clica aqui pra entrar na minha mesa: ${linkJogo}`;
-
-      // Abre o WhatsApp
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoZap)}`, '_blank');
-
-      // Tenta copiar link
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(linkJogo);
-      }
+      if (navigator.clipboard) navigator.clipboard.writeText(linkJogo);
     }
 
     function tratarDadosRede(dados) {
@@ -459,9 +485,8 @@
     }
 
     function enviarMudanca() {
-      if (souHost) {
-        sincronizar();
-      } else {
+      if (souHost) sincronizar();
+      else {
         conexao.send({ tipo: 'acao', estado: estadoJogo });
         renderizar();
       }
@@ -471,6 +496,77 @@
       document.getElementById("lobby-screen").style.display = "none";
       document.getElementById("game-screen").style.display = "flex";
       renderizar();
+    }
+
+    // --- FUNÇÃO DE ORGANIZAR CARTAS (ORDENAÇÃO INTELIGENTE) ---
+    function organizarMao() {
+      const minhaMao = estadoJogo.maos[meuIndice];
+      if (!minhaMao || minhaMao.length === 0) return;
+
+      minhaMao.sort((a, b) => {
+        const ordemNaipe = NAIPES.indexOf(a.naipe) - NAIPES.indexOf(b.naipe);
+        if (ordemNaipe !== 0) return ordemNaipe;
+        return MAPA_VALORES[a.valor] - MAPA_VALORES[b.valor];
+      });
+
+      renderizar();
+    }
+
+    // --- DETECTOR DE JOGOS FORMADOS (BRILHO DOURADO) ---
+    function identificarIdsComJogosValidos(mao) {
+      const idsComBrilho = new Set();
+      if (!mao || mao.length < 3) return idsComBrilho;
+
+      // 1. Checar Trincas (3+ cartas de mesmo valor)
+      const porValor = {};
+      mao.forEach(c => {
+        porValor[c.valor] = porValor[c.valor] || [];
+        porValor[c.valor].push(c);
+      });
+      Object.values(porValor).forEach(grupo => {
+        if (grupo.length >= 3) {
+          grupo.forEach(c => idsComBrilho.add(c.id));
+        }
+      });
+
+      // 2. Checar Sequências de mesmo naipe
+      const porNaipe = {};
+      mao.forEach(c => {
+        porNaipe[c.naipe] = porNaipe[c.naipe] || [];
+        porNaipe[c.naipe].push(c);
+      });
+
+      Object.values(porNaipe).forEach(grupo => {
+        if (grupo.length >= 3) {
+          // Remove duplicatas de valor mantendo uma carta para checar sequência contígua
+          const unicos = [...new Map(grupo.map(c => [c.valor, c])).values()];
+          unicos.sort((a, b) => MAPA_VALORES[a.valor] - MAPA_VALORES[b.valor]);
+
+          let sequenciaAtual = [];
+          for (let i = 0; i < unicos.length; i++) {
+            if (sequenciaAtual.length === 0) {
+              sequenciaAtual.push(unicos[i]);
+            } else {
+              const valorAnterior = MAPA_VALORES[sequenciaAtual[sequenciaAtual.length - 1].valor];
+              const valorAtual = MAPA_VALORES[unicos[i].valor];
+
+              if (valorAtual === valorAnterior + 1) {
+                sequenciaAtual.push(unicos[i]);
+              } else {
+                if (sequenciaAtual.length >= 3) {
+                  sequenciaAtual.forEach(c => idsComBrilho.add(c.id));
+                }
+                sequenciaAtual = [unicos[i]];
+              }
+            }
+          }
+          if (sequenciaAtual.length >= 3) {
+            sequenciaAtual.forEach(c => idsComBrilho.add(c.id));
+          }
+        }
+      });
+
+      return idsComBrilho;
     }
 
     function renderizar() {
@@ -505,7 +601,7 @@
         estadoJogo.jogosMesa.forEach(jogo => {
           const divJogo = document.createElement("div");
           divJogo.style.display = "flex";
-          divJogo.style.gap = "-25px";
+          divJogo.style.gap = "-30px";
           jogo.forEach(c => divJogo.appendChild(criarCartaHTML(c)));
           areaJogos.appendChild(divJogo);
         });
@@ -513,12 +609,22 @@
         areaJogos.innerHTML = `<span style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">Nenhum jogo baixado</span>`;
       }
 
+      // Renderizar Mão com Brilho Inteligente
       const areaMao = document.getElementById("area-minha-mao");
       areaMao.innerHTML = "";
       const minhaMao = estadoJogo.maos[meuIndice] || [];
+      const idsBrilhantes = identificarIdsComJogosValidos(minhaMao);
+
       minhaMao.forEach((carta) => {
         const el = criarCartaHTML(carta);
-        if (cartasSelecionadas.some(c => c.id === carta.id)) el.classList.add("selecionada");
+
+        if (idsBrilhantes.has(carta.id)) {
+          el.classList.add("brilho-jogo");
+        }
+        if (cartasSelecionadas.some(c => c.id === carta.id)) {
+          el.classList.add("selecionada");
+        }
+
         el.onclick = () => alternarSelecao(carta);
         areaMao.appendChild(el);
       });
@@ -528,7 +634,11 @@
       const el = document.createElement("div");
       const red = carta.naipe === '♥' || carta.naipe === '♦';
       el.className = `carta ${red ? 'vermelha' : 'preta'}`;
-      el.innerHTML = `<div>${carta.valor}</div><div style="font-size: 1.2rem; text-align: center;">${carta.naipe}</div><div style="text-align: right;">${carta.valor}</div>`;
+      el.innerHTML = `
+        <div>${carta.valor}</div>
+        <div style="font-size: 1.4rem; text-align: center;">${carta.naipe}</div>
+        <div style="text-align: right;">${carta.valor}</div>
+      `;
       return el;
     }
 
